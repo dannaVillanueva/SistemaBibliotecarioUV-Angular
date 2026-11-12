@@ -1,0 +1,265 @@
+
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside
+    class="sidebar"
+    [class.sidebar-cerrado]="!menuAbierto">
+
+    <div class="sidebar-header">
+
+      <div class="logo-icon" aria-hidden="true">
+        📚
+      </div>
+
+      <div class="logo-text" *ngIf="menuAbierto">
+        <strong>Biblioteca FCA</strong>
+        <span>Sistema interno</span>
+      </div>
+
+    </div>
+
+    <!-- MENÚ PRINCIPAL -->
+    <nav
+      class="sidebar-menu"
+      aria-label="Menú principal">
+
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{exact: true}"
+        title="Inicio">
+
+        <span class="menu-icon">🏠</span>
+        <span *ngIf="menuAbierto">Inicio</span>
+      </a>
+
+      <a
+        routerLink="/recursos"
+        routerLinkActive="active"
+        title="Recursos documentales">
+
+        <span class="menu-icon">📚</span>
+        <span *ngIf="menuAbierto">
+          Recursos documentales
+        </span>
+      </a>
+
+      <a
+        routerLink="/cotizaciones"
+        routerLinkActive="active"
+        title="Cotizaciones">
+
+        <span class="menu-icon">🧾</span>
+        <span *ngIf="menuAbierto">Cotizaciones</span>
+      </a>
+
+      <a
+        routerLink="/donaciones"
+        routerLinkActive="active"
+        title="Donaciones">
+
+        <span class="menu-icon">🎁</span>
+        <span *ngIf="menuAbierto">Donaciones</span>
+      </a>
+
+      <a
+        routerLink="/bajas"
+        routerLinkActive="active"
+        title="Bajas">
+
+        <span class="menu-icon">📤</span>
+        <span *ngIf="menuAbierto">Bajas</span>
+      </a>
+
+      <a
+        routerLink="/descartes"
+        routerLinkActive="active"
+        title="Descartes">
+
+        <span class="menu-icon">🗑️</span>
+        <span *ngIf="menuAbierto">Descartes</span>
+      </a>
+
+      <a
+        routerLink="/servicio-practicas"
+        routerLinkActive="active"
+        title="Servicio social y prácticas">
+
+        <span class="menu-icon">🎓</span>
+        <span *ngIf="menuAbierto">
+    Servicio social y prácticas
+  </span>
+      </a>
+
+      <a
+        routerLink="/usuarios"
+        routerLinkActive="active"
+        title="Usuarios">
+
+        <span class="menu-icon">👥</span>
+        <span *ngIf="menuAbierto">Usuarios</span>
+      </a>
+
+      <!-- CATÁLOGOS DESPLEGABLE -->
+      <button
+        type="button"
+        class="catalogos-toggle"
+        [class.active]="catalogosActivo()"
+        [attr.aria-expanded]="menuAbierto && catalogosAbiertos"
+        aria-controls="catalogos-submenu"
+        title="Catálogos"
+        (click)="cambiarCatalogos()">
+
+        <span class="menu-icon">⚙️</span>
+
+        <span
+          class="catalogos-label"
+          *ngIf="menuAbierto">
+          Catálogos
+        </span>
+
+        <span
+          class="submenu-chevron"
+          *ngIf="menuAbierto">
+          {{ catalogosAbiertos ? '⌄' : '›' }}
+        </span>
+
+      </button>
+
+      <!-- SUBMENÚ DE CATÁLOGOS -->
+      <div
+        id="catalogos-submenu"
+        class="catalogos-submenu"
+        *ngIf="menuAbierto && catalogosAbiertos">
+
+        <a
+          routerLink="/catalogos"
+          [queryParams]="{seccion: 'programas'}"
+          title="Programas educativos">
+
+          <span>🎓</span>
+          <span>Programas educativos</span>
+        </a>
+
+        <a
+          routerLink="/catalogos"
+          [queryParams]="{seccion: 'academias'}"
+          title="Academias">
+
+          <span>🏛️</span>
+          <span>Academias</span>
+        </a>
+
+        <a
+          routerLink="/catalogos"
+          [queryParams]="{seccion: 'experiencias'}"
+          title="Experiencias educativas">
+
+          <span>📖</span>
+          <span>Experiencias educativas</span>
+        </a>
+
+        <a
+          routerLink="/catalogos"
+          [queryParams]="{seccion: 'editoriales'}"
+          title="Editoriales">
+
+          <span>🏷️</span>
+          <span>Editoriales</span>
+        </a>
+
+      </div>
+
+    </nav>
+
+    <!-- CERRAR SESIÓN -->
+    <div class="sidebar-footer">
+
+      <button
+        type="button"
+        class="logout-button"
+        title="Cerrar sesión"
+        (click)="cerrarSesion()">
+
+        <span class="menu-icon">🚪</span>
+
+        <span *ngIf="menuAbierto">
+          Cerrar sesión
+        </span>
+
+      </button>
+
+    </div>
+
+  </aside>
+
+  <!-- ÁREA PRINCIPAL -->
+  <div class="main-area">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="topbar">
+
+      <div class="topbar-left">
+
+        <button
+          type="button"
+          class="menu-button"
+          (click)="cambiarMenu()"
+          [attr.aria-label]="menuAbierto ? 'Contraer menú' : 'Expandir menú'">
+          ☰
+        </button>
+
+        <div class="library-name">
+
+          <strong>
+            Biblioteca Ing. Manuel Lima Flores
+          </strong>
+
+          <span>
+            Facultad de Contaduría y Administración
+          </span>
+
+        </div>
+
+      </div>
+
+      <!-- USUARIO -->
+      <div class="user-container">
+
+        <div class="user-avatar">
+          {{
+          usuario?.nombre
+          ? usuario.nombre.charAt(0).toUpperCase()
+          : 'U'
+          }}
+        </div>
+
+        <div class="user-information">
+
+          <strong>
+            {{ usuario?.nombre }}
+          </strong>
+
+          <span>
+            {{
+              usuario?.rol === 'RESPONSABLE_BIBLIOTECA'
+                ? 'Responsable de Biblioteca'
+                : 'Personal de Biblioteca'
+            }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+    <!-- CONTENIDO DE LAS PÁGINAS -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>

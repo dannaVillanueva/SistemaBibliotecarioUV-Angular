@@ -1,0 +1,15 @@
+/* Agregar al final de cotizaciones.scss */
+.historial-versiones { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); gap:16px; margin-top:16px; }
+.historial-version { min-width:0; border:1px solid #dbe3ef; border-radius:12px; padding:16px; background:#fff; }
+.historial-version h4 { margin:0 0 14px; color:#17365d; }
+.historial-version h5 { margin:18px 0 10px; font-size:1rem; }
+.historial-datos { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+.historial-datos > div { display:flex; flex-direction:column; gap:4px; min-width:0; overflow-wrap:anywhere; }
+.historial-datos span, .historial-libro > span { font-size:.82rem; color:#5d6c7e; }
+.historial-datos strong { font-size:.92rem; color:#172b4d; }
+.historial-ancho { grid-column:1/-1; }
+.historial-libro { display:flex; flex-direction:column; gap:5px; background:#f6f8fc; padding:12px; border-radius:9px; margin:10px 0; overflow-wrap:anywhere; }
+.historial-precio { border-top:1px solid #dbe3ef; margin-top:6px; padding-top:8px; }
+.historial-total { display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:12px; margin-top:12px; border-top:2px solid #17365d; }
+.historial-total strong { color:#17365d; font-size:1.15rem; }
+.historial-vacio { color:#637184; font-style:italic; }

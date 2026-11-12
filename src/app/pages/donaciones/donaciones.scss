@@ -1,0 +1,49 @@
+:host { display:block; min-width:0; }
+* { box-sizing:border-box; }
+.donaciones-page { padding:24px; max-width:1500px; margin:auto; color:#1e293b; }
+.encabezado,.titulo-panel,.acciones { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+h1 { margin:0 0 5px; font-size:1.85rem; color:#172d4f; }
+h2 { margin:0; font-size:1.2rem; color:#172d4f; }
+h3 { margin:25px 0 14px; }
+.encabezado p { margin:0; color:#64748b; }
+button { border:1px solid #d8e0eb; background:#fff; padding:10px 15px; border-radius:9px; cursor:pointer; font-weight:600; color:#253858; }
+button:hover:not(:disabled) { background:#eef3f9; }
+button:disabled { opacity:.55; cursor:not-allowed; }
+button.principal { background:#19385c; border-color:#19385c; color:#fff; }
+button.principal:hover:not(:disabled) { background:#274e79; }
+button.peligro { color:#b42318; }
+.resumen { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:24px 0; }
+.resumen article { background:#fff; border:1px solid #e3e8f0; border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:6px; box-shadow:0 3px 14px #2030470b; }
+.resumen strong { font-size:1.55rem; color:#19385c; overflow-wrap:anywhere; }
+.resumen span { color:#64748b; font-size:.9rem; }
+.panel { background:#fff; border:1px solid #e1e7ef; border-radius:15px; padding:24px; margin-bottom:20px; box-shadow:0 4px 16px #14253b0a; min-width:0; }
+.campos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:18px; }
+.campos label { display:flex; flex-direction:column; gap:7px; font-size:.9rem; font-weight:600; min-width:0; }
+.campos label.ancho { grid-column:1/-1; }
+input:not([type=radio]),select,textarea { display:block; width:100%; min-width:0; border:1px solid #cdd7e4; border-radius:8px; padding:11px 12px; background:white; color:#1e293b; font:inherit; }
+textarea { resize:vertical; }
+input:focus,select:focus,textarea:focus { outline:2px solid #8bb3df; outline-offset:1px; }
+.opciones { display:flex; gap:22px; flex-wrap:wrap; padding:12px 0; }
+.opciones label { display:flex; align-items:center; gap:7px; cursor:pointer; }
+.acciones { justify-content:flex-end; margin-top:25px; }
+.filtros { margin:18px 0; max-width:520px; }
+.tabla-contenedor { overflow-x:auto; width:100%; }
+table { border-collapse:collapse; width:100%; min-width:780px; }
+th,td { padding:14px 12px; border-bottom:1px solid #e8edf4; text-align:left; vertical-align:top; }
+th { color:#53647b; font-size:.8rem; text-transform:uppercase; background:#f7f9fc; }
+td small { display:block; color:#718096; margin-top:5px; }
+.acciones-tabla { display:flex; gap:7px; flex-wrap:wrap; }
+.acciones-tabla button { padding:7px 10px; }
+.alerta { border-radius:9px; padding:12px 15px; margin-top:15px; }
+.alerta.exito { background:#eaf7ee; color:#166534; }
+.alerta.error { background:#fff0ef; color:#a21d1d; }
+@media(max-width:760px) {
+ .donaciones-page { padding:14px; }
+ .panel { padding:16px; }
+ .resumen { grid-template-columns:1fr; }
+ .campos { grid-template-columns:1fr; }
+ .campos label.ancho { grid-column:auto; }
+}
+
+/* Acciones de reportes */
+.acciones-reporte { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }

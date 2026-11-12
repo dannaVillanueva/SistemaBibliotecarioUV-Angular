@@ -1,0 +1,334 @@
+<section class="cotizaciones-page">
+  <div class="encabezado">
+    <div>
+      <h1>🧾 Cotizaciones</h1>
+      <p>Solicitudes de adquisición de recursos documentales</p>
+    </div>
+    <button class="principal" type="button" (click)="abrirNuevo()" [disabled]="guardando">+ Nueva cotización</button>
+  </div>
+
+  <p class="alerta exito" *ngIf="mensaje" role="status">{{ mensaje }}</p>
+  <p class="alerta error" *ngIf="error" role="alert">{{ error }}</p>
+
+  <div class="resumen">
+    <div><strong>{{ totalCotizaciones }}</strong><span>Total</span></div>
+    <div><strong>{{ contarEstado('pendiente') }}</strong><span>Pendientes</span></div>
+    <div><strong>{{ contarEstado('aprobada') }}</strong><span>Aprobadas</span></div>
+    <div><strong>{{ contarEstado('rechazada') }}</strong><span>Rechazadas</span></div>
+  </div>
+
+  <section class="panel" *ngIf="mostrandoFormulario">
+    <div class="titulo-panel">
+      <h2>{{ editandoId === null ? 'Nueva cotización' : 'Editar cotización #' + editandoId }}</h2>
+      <button type="button" class="secundario" (click)="cancelar()" [disabled]="guardando">Cerrar</button>
+    </div>
+
+    <form (ngSubmit)="guardar()" #cotizacionForm="ngForm">
+      <h3>Datos de la solicitud</h3>
+      <div class="campos">
+        <label>Fecha de solicitud
+          <input type="date" name="fecha" [(ngModel)]="formulario.fechaSolicitud" required>
+        </label>
+        <label>Estado
+          <input type="text" name="estado" [value]="formulario.estado" readonly>
+        </label>
+        <label>Docente solicitante
+          <input type="text" name="solicitante" [(ngModel)]="formulario.solicitante" required placeholder="Nombre del docente">
+        </label>
+        <label>Correo del docente
+          <input type="email" name="correo" [(ngModel)]="formulario.correoSolicitante" placeholder="correo@ejemplo.com" email>
+        </label>
+        <label>Teléfono
+          <input type="tel" name="telefono" [(ngModel)]="formulario.telefonoSolicitante" placeholder="Teléfono de contacto">
+        </label>
+        <label>Dependencia / área solicitante
+          <input type="text" name="dependencia" [(ngModel)]="formulario.dependencia" placeholder="Programa educativo o academia">
+        </label>
+        <label class="ancho">Justificación
+          <textarea name="justificacion" [(ngModel)]="formulario.justificacion" rows="3" placeholder="¿Para qué materia o actividad se requieren los libros?"></textarea>
+        </label>
+        <label>Proveedor sugerido
+          <input type="text" name="proveedor" [(ngModel)]="formulario.proveedorSugerido" placeholder="Opcional">
+        </label>
+        <label class="ancho">Observaciones
+          <textarea name="observaciones" [(ngModel)]="formulario.observaciones" rows="3" placeholder="Observaciones adicionales"></textarea>
+        </label>
+      </div>
+
+      <div class="titulo-panel">
+        <h3>Libros solicitados</h3>
+        <button type="button" class="secundario" (click)="agregarRenglon()" [disabled]="guardando">+ Agregar libro</button>
+      </div>
+
+      <div class="renglones">
+        <div class="renglon" *ngFor="let d of renglones; let i = index">
+          <div class="renglon-titulo">
+            <strong>Libro {{ i + 1 }}</strong>
+            <button type="button" class="peligro-texto" (click)="quitarRenglon(i)" [disabled]="guardando || renglones.length === 1">Quitar</button>
+          </div>
+
+          <div class="campos">
+            <label class="ancho">Origen del libro
+              <select [name]="'origen' + i" [(ngModel)]="d.origen" (ngModelChange)="cambiarOrigen(d)" required>
+                <option value="externo">Libro nuevo / externo solicitado por un docente</option>
+                <option value="catalogo">Libro registrado en la biblioteca</option>
+              </select>
+            </label>
+
+            <ng-container *ngIf="d.origen === 'catalogo'">
+              <label class="ancho">Recurso documental
+                <select [name]="'recurso' + i" [(ngModel)]="d.idRecursoDocumental" required>
+                  <option [ngValue]="null">Selecciona un recurso</option>
+                  <option *ngFor="let r of recursos" [ngValue]="r.idRecursoDocumental">{{ r.titulo }} — {{ r.autor }}</option>
+                </select>
+              </label>
+            </ng-container>
+
+            <ng-container *ngIf="d.origen === 'externo'">
+              <label class="ancho">Título del libro *
+                <input type="text" [name]="'tituloExterno' + i" [(ngModel)]="d.tituloExterno" required placeholder="Título del libro solicitado">
+              </label>
+              <label>Autor
+                <input type="text" [name]="'autorExterno' + i" [(ngModel)]="d.autorExterno" placeholder="Autor del libro">
+              </label>
+              <label>ISBN
+                <input type="text" [name]="'isbnExterno' + i" [(ngModel)]="d.isbnExterno" placeholder="ISBN (si se conoce)">
+              </label>
+               <div class="ancho editorial-selector">
+                 <span class="etiqueta-campo">Editorial</span>
+                 <div class="editorial-opciones">
+                   <label><input type="radio" [name]="'modoEditorial' + i" value="existente" [(ngModel)]="d.modoEditorial" (ngModelChange)="cambiarModoEditorial(d)"> Seleccionar editorial existente</label>
+                   <label><input type="radio" [name]="'modoEditorial' + i" value="nueva" [(ngModel)]="d.modoEditorial" (ngModelChange)="cambiarModoEditorial(d)"> Escribir editorial nueva</label>
+                 </div>
+                 <label *ngIf="d.modoEditorial === 'existente'">Editorial del catálogo
+                   <select [name]="'idEditorial' + i" [(ngModel)]="d.idEditorial">
+                     <option [ngValue]="null">Sin editorial</option>
+                     <option *ngFor="let e of editoriales" [ngValue]="e.idEditorial">{{ e.nombre }}</option>
+                   </select>
+                 </label>
+                 <label *ngIf="d.modoEditorial === 'nueva'">Nombre de la nueva editorial
+                   <input type="text" [name]="'editorialExterna' + i" [(ngModel)]="d.editorialExterna" required maxlength="255" placeholder="Escribe el nombre de la editorial">
+                 </label>
+               </div>
+              <label>Edición
+                <input type="text" [name]="'edicionExterna' + i" [(ngModel)]="d.edicionExterna" placeholder="Edición">
+              </label>
+              <label>Año
+                <input type="number" [name]="'anioExterno' + i" [(ngModel)]="d.anioExterno" min="1450" max="2100" step="1" placeholder="Año">
+              </label>
+            </ng-container>
+
+            <label>Programa educativo
+              <select [name]="'programa' + i" [(ngModel)]="d.idProgramaEducativo">
+                <option [ngValue]="null">Sin especificar</option>
+                <option *ngFor="let p of programas" [ngValue]="p.idProgramaEducativo">{{ p.nombre }}</option>
+              </select>
+            </label>
+            <label>Academia
+              <select [name]="'academia' + i" [(ngModel)]="d.idAcademia">
+                <option [ngValue]="null">Sin especificar</option>
+                <option *ngFor="let a of academias" [ngValue]="a.idAcademia">{{ a.nombre }}</option>
+              </select>
+            </label>
+            <label>Cantidad
+              <input type="number" [name]="'cantidad' + i" [(ngModel)]="d.cantidad" min="1" step="1" required>
+            </label>
+            <label>Precio unitario estimado
+              <input type="number" [name]="'precio' + i" [(ngModel)]="d.precioUnitarioEstimado" min="0" step="0.01" required>
+            </label>
+             <label class="ancho">URL de cotización o compra
+               <input type="url" [name]="'urlCotizacion' + i" [(ngModel)]="d.urlCotizacion" maxlength="2048" placeholder="https://ejemplo.com/libro">
+             </label>
+             <label>Estado de adquisición
+               <select [name]="'estadoAdquisicion' + i" [(ngModel)]="d.estadoAdquisicion">
+                 <option value="PENDIENTE">Pendiente</option>
+                 <option value="COTIZADO">Cotizado</option>
+                 <option value="AUTORIZADO">Autorizado</option>
+                 <option value="COMPRADO">Comprado</option>
+                 <option value="RECIBIDO">Recibido</option>
+                 <option value="CANCELADO">Cancelado</option>
+               </select>
+             </label>
+             <label>FILU
+              <select [name]="'filu' + i" [(ngModel)]="d.filu">
+                <option value="NO">No</option>
+                <option value="SI">Sí</option>
+              </select>
+            </label>
+            <div class="subtotal"><span>Subtotal</span><strong>{{ subtotal(d) | currency:'MXN':'symbol':'1.2-2' }}</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="total"><span>Total estimado</span><strong>{{ totalFormulario | currency:'MXN':'symbol':'1.2-2' }}</strong></div>
+      <div class="acciones">
+        <button type="button" class="secundario" (click)="cancelar()" [disabled]="guardando">Cancelar</button>
+        <button type="submit" class="principal" [disabled]="guardando || cotizacionForm.invalid">{{ guardando ? 'Guardando...' : 'Guardar cotización' }}</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="titulo-panel">
+      <h2>Listado de cotizaciones</h2>
+      <button type="button" class="secundario" (click)="verHistorial()">Historial completo (incluye eliminadas)</button>
+      <button type="button" class="secundario" (click)="cargarDatos()" [disabled]="cargando">Actualizar</button>
+    </div>
+    <div class="filtros" style="display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:16px 0;">
+      <label style="display:flex;flex-direction:column;gap:5px;">Fecha inicial
+        <input type="date" [(ngModel)]="fechaReporteInicio" aria-label="Fecha inicial del reporte">
+      </label>
+      <label style="display:flex;flex-direction:column;gap:5px;">Fecha final
+        <input type="date" [(ngModel)]="fechaReporteFin" [min]="fechaReporteInicio || null" aria-label="Fecha final del reporte">
+      </label>
+      <button type="button" class="secundario" (click)="exportarExcel()"
+        [disabled]="cargando || exportandoExcel || !fechaReporteInicio || !fechaReporteFin || fechaReporteInicio > fechaReporteFin">
+        {{ exportandoExcel ? 'Generando Excel...' : 'Exportar a Excel' }}
+      </button>
+    </div>
+    <div class="filtros">
+      <input type="search" [(ngModel)]="filtro" placeholder="Buscar por folio, docente, fecha o estado" aria-label="Buscar cotizaciones">
+      <select [(ngModel)]="filtroEstado" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="aprobada">Aprobadas</option>
+        <option value="rechazada">Rechazadas</option>
+      </select>
+    </div>
+    <p *ngIf="cargando">Cargando datos...</p>
+    <div class="tabla-contenedor" *ngIf="!cargando">
+      <table>
+        <thead><tr><th>Folio</th><th>Fecha</th><th>Docente</th><th>Estado</th><th>Libros</th><th>Total estimado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          <ng-container *ngFor="let c of cotizacionesFiltradas">
+            <tr>
+              <td>#{{ c.idCotizacion }}</td>
+              <td>{{ c.fechaSolicitud }}</td>
+              <td>{{ c.solicitante || 'Sin especificar' }}</td>
+              <td><span class="estado" [ngClass]="(c.estado || '').toLowerCase()">{{ c.estado }}</span></td>
+              <td>{{ detallesDe(c.idCotizacion).length }}</td>
+              <td>{{ totalDe(c.idCotizacion) | currency:'MXN':'symbol':'1.2-2' }}</td>
+              <td><div class="acciones-tabla">
+                <button type="button" (click)="verDetalles(c.idCotizacion!)">{{ detalleVisibleId === c.idCotizacion ? 'Ocultar' : 'Ver detalle' }}</button>
+                <button type="button" (click)="verHistorial(c.idCotizacion!)">Historial</button>
+                <button type="button" (click)="editar(c)" [disabled]="guardando">Editar</button>
+                <button type="button" class="btn-aprobar" *ngIf="(c.estado || '').toLowerCase() === 'pendiente'" (click)="cambiarEstado(c, 'aprobada')" [disabled]="guardando">Aprobar</button>
+                <button type="button" class="btn-rechazar" *ngIf="(c.estado || '').toLowerCase() === 'pendiente'" (click)="cambiarEstado(c, 'rechazada')" [disabled]="guardando">Rechazar</button>
+                <button type="button" class="peligro-texto" (click)="eliminar(c)" [disabled]="guardando">Eliminar</button>
+              </div></td>
+            </tr>
+            <tr *ngIf="detalleVisibleId === c.idCotizacion">
+              <td colspan="7"><div class="detalle">
+                <p><strong>Docente:</strong> {{ c.solicitante || 'Sin especificar' }}</p>
+                <p><strong>Correo:</strong> {{ c.correoSolicitante || 'Sin especificar' }}</p>
+                <p><strong>Dependencia:</strong> {{ c.dependencia || 'Sin especificar' }}</p>
+                <p><strong>Justificación:</strong> {{ c.justificacion || 'Sin justificación' }}</p>
+                <p><strong>Proveedor sugerido:</strong> {{ c.proveedorSugerido || 'Sin especificar' }}</p>
+                <p><strong>Observaciones:</strong> {{ c.observaciones || 'Sin observaciones' }}</p>
+                <div *ngFor="let d of detallesDe(c.idCotizacion)" class="detalle-linea">
+                  <strong>{{ nombreDetalle(d) }}</strong>
+                  <span>{{ d.cantidad }} × {{ d.precioUnitarioEstimado | currency:'MXN' }} = {{ (d.cantidad * d.precioUnitarioEstimado) | currency:'MXN' }}</span>
+                  <span>{{ d.recursoDocumental?.idRecursoDocumental ? 'Catálogo' : 'Libro externo' }} · FILU: {{ d.filu }}</span>
+                   <span>Editorial: {{ d.editorial?.nombre || d.editorialExterna || 'Sin editorial' }}</span>
+                   <span>Adquisición: {{ d.estadoAdquisicion || 'PENDIENTE' }}</span>
+                   <a *ngIf="d.urlCotizacion" [href]="d.urlCotizacion" target="_blank" rel="noopener noreferrer">Ver URL de cotización</a>
+                </div>
+                <p *ngIf="detallesDe(c.idCotizacion).length === 0">Sin libros asociados.</p>
+              </div></td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="cotizacionesFiltradas.length === 0"><td colspan="7">No hay cotizaciones para mostrar.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="panel historial-panel" *ngIf="historialVisible">
+    <div class="titulo-panel historial-cabecera">
+      <div>
+        <h2>Historial {{ cotizacionHistorialId === null ? 'general' : 'de la cotización #' + cotizacionHistorialId }}</h2>
+        <p class="historial-ayuda">Consulta los movimientos y abre cada versión para ver sus datos y libros.</p>
+      </div>
+      <button type="button" class="secundario" (click)="cerrarHistorial()">Cerrar historial</button>
+    </div>
+    <div class="filtros historial-filtros">
+      <input type="search" [(ngModel)]="filtroHistorial" placeholder="Buscar folio, acción o usuario" aria-label="Buscar en historial">
+      <button type="button" class="secundario" (click)="cotizacionHistorialId = null">Ver todas</button>
+    </div>
+    <p *ngIf="historialFiltrado.length === 0" class="historial-vacio">No hay movimientos históricos para mostrar.</p>
+    <article *ngFor="let h of historialFiltrado" class="historial-evento">
+      <div class="historial-evento-encabezado">
+        <div class="historial-evento-titulo">
+          <span class="historial-folio">Cotización #{{ h.idCotizacion }}</span>
+          <h3>{{ h.accion }}</h3>
+          <span class="historial-fecha">{{ h.fechaHora | date:'dd/MM/yyyy, HH:mm' }}</span>
+        </div>
+        <span class="estado" [ngClass]="(h.estadoNuevo || h.estadoAnterior || '').toLowerCase()">
+          {{ h.estadoNuevo || h.estadoAnterior || 'Sin estado' }}
+        </span>
+      </div>
+      <div class="historial-meta">
+        <div><span>Usuario responsable</span><strong>{{ h.usuario || 'No identificado' }}</strong></div>
+        <div><span>Cambio de estado</span><strong>{{ h.estadoAnterior || '—' }} → {{ h.estadoNuevo || '—' }}</strong></div>
+        <div class="historial-meta-ancho"><span>Observaciones</span><strong>{{ h.observaciones || 'Sin observaciones' }}</strong></div>
+      </div>
+      <div class="historial-versiones">
+        <details class="historial-version">
+          <summary><span>Versión anterior</span><small>Datos y libros antes del movimiento</small></summary>
+          <div class="historial-version-contenido">
+            <ng-container *ngTemplateOutlet="versionCotizacion; context: { $implicit: leerVersion(h.datosAnteriores), original: h.datosAnteriores }"></ng-container>
+          </div>
+        </details>
+        <details class="historial-version">
+          <summary><span>Versión nueva</span><small>Datos y libros después del movimiento</small></summary>
+          <div class="historial-version-contenido">
+            <ng-container *ngTemplateOutlet="versionCotizacion; context: { $implicit: leerVersion(h.datosNuevos), original: h.datosNuevos }"></ng-container>
+          </div>
+        </details>
+      </div>
+    </article>
+  </section>
+</section>
+
+<!-- Plantilla compartida para mostrar versiones históricas de manera legible. -->
+<ng-template #versionCotizacion let-v let-original="original">
+  <ng-container *ngIf="v; else sinVersion">
+    <div class="historial-datos">
+      <div><span>Folio</span><strong>#{{ v.idCotizacion ?? '—' }}</strong></div>
+      <div><span>Fecha de solicitud</span><strong>{{ v.fechaSolicitud || 'No especificada' }}</strong></div>
+      <div><span>Estado</span><strong>{{ v.estado || 'No especificado' }}</strong></div>
+      <div><span>Docente solicitante</span><strong>{{ v.solicitante || 'No especificado' }}</strong></div>
+      <div><span>Correo</span><strong>{{ v.correoSolicitante || 'No especificado' }}</strong></div>
+      <div><span>Teléfono</span><strong>{{ v.telefonoSolicitante || 'No especificado' }}</strong></div>
+      <div><span>Dependencia</span><strong>{{ v.dependencia || 'No especificada' }}</strong></div>
+      <div><span>Proveedor sugerido</span><strong>{{ v.proveedorSugerido || 'No especificado' }}</strong></div>
+      <div class="historial-ancho"><span>Justificación</span><strong>{{ v.justificacion || 'Sin justificación' }}</strong></div>
+      <div class="historial-ancho"><span>Observaciones</span><strong>{{ v.observaciones || 'Sin observaciones' }}</strong></div>
+    </div>
+    <h5 class="historial-subtitulo">Libros registrados ({{ (v.libros || []).length }})</h5>
+    <div *ngFor="let libro of v.libros; let i = index" class="historial-libro">
+      <strong class="historial-libro-titulo">{{ i + 1 }}. {{ nombreLibroHistorico(libro) }}</strong>
+      <span>{{ libro.idRecursoDocumental != null ? 'Libro del catálogo' : 'Libro externo' }}</span>
+      <span *ngIf="libro.autorExterno">Autor: {{ libro.autorExterno }}</span>
+      <span *ngIf="libro.isbnExterno">ISBN: {{ libro.isbnExterno }}</span>
+      <span *ngIf="libro.editorialExterna">Editorial: {{ libro.editorialExterna }}</span>
+       <span>Adquisición: {{ libro.estadoAdquisicion || 'PENDIENTE' }}</span>
+       <a *ngIf="libro.urlCotizacion" [href]="libro.urlCotizacion" target="_blank" rel="noopener noreferrer">Ver URL de cotización</a>
+      <span>Programa: {{ nombreProgramaHistorico(libro.idProgramaEducativo) }}</span>
+      <span>Academia: {{ nombreAcademiaHistorica(libro.idAcademia) }}</span>
+      <span>FILU: {{ libro.filu || 'No especificado' }}</span>
+      <div class="historial-precio">
+        {{ libro.cantidad ?? 0 }} × {{ (libro.precioUnitarioEstimado ?? 0) | currency:'MXN':'symbol':'1.2-2' }}
+        = <strong>{{ ((libro.cantidad ?? 0) * (libro.precioUnitarioEstimado ?? 0)) | currency:'MXN':'symbol':'1.2-2' }}</strong>
+      </div>
+    </div>
+    <p *ngIf="!v.libros?.length">No hay libros en esta versión.</p>
+    <div class="historial-total"><span>Total estimado</span><strong>{{ totalVersion(v) | currency:'MXN':'symbol':'1.2-2' }}</strong></div>
+  </ng-container>
+  <ng-template #sinVersion>
+    <p *ngIf="!original" class="historial-vacio">No existe una versión guardada para este movimiento.</p>
+    <div *ngIf="original" class="historial-vacio">
+      <p>La versión no se pudo interpretar.</p>
+      <details><summary>Consultar datos originales</summary><pre class="historial-json">{{ formatearSnapshot(original) }}</pre></details>
+    </div>
+  </ng-template>
+</ng-template>

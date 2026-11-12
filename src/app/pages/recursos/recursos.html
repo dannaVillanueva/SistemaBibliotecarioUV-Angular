@@ -1,0 +1,1321 @@
+<div class="container-fluid p-0">
+
+  <!-- ===================================== -->
+  <!-- ENCABEZADO -->
+  <!-- ===================================== -->
+
+  <div
+    class="d-flex
+           flex-column
+           flex-lg-row
+           justify-content-between
+           align-items-lg-center
+           gap-3
+           mb-4">
+
+    <div>
+
+      <span class="page-label">
+        Gestión documental
+      </span>
+
+      <h1 class="page-title">
+        Recursos documentales
+      </h1>
+
+      <p class="page-description">
+        Consulta y administra los recursos
+        registrados en la biblioteca.
+      </p>
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="cambiarFiltros()">
+
+        🔎 Búsqueda avanzada
+
+      </button>
+
+      <button type="button" class="btn btn-outline-success" (click)="exportarExcel()"
+              [disabled]="cargando || recursos.length === 0" title="Exportar recursos a archivo Excel (.xlsx)">
+        ⬇ Exportar a Excel
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="abrirNuevoRecurso()">
+
+        + Nuevo recurso
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================== -->
+  <!-- FILTROS -->
+  <!-- ===================================== -->
+
+  <div
+    *ngIf="mostrarFiltros"
+    class="card filter-card mb-4">
+
+    <div class="card-body">
+
+      <div class="row g-3">
+
+        <div class="col-12 col-md-6 col-xl-4">
+
+          <label
+            for="titulo"
+            class="form-label">
+
+            Título
+
+          </label>
+
+          <input
+            id="titulo"
+            name="titulo"
+            type="text"
+            class="form-control"
+            [(ngModel)]="filtros.titulo"
+            placeholder="Buscar por título">
+
+        </div>
+
+
+        <div class="col-12 col-md-6 col-xl-4">
+
+          <label
+            for="autor"
+            class="form-label">
+
+            Autor
+
+          </label>
+
+          <input
+            id="autor"
+            name="autor"
+            type="text"
+            class="form-control"
+            [(ngModel)]="filtros.autor"
+            placeholder="Buscar por autor">
+
+        </div>
+
+
+        <div class="col-12 col-md-6 col-xl-4">
+
+          <label
+            for="isbn"
+            class="form-label">
+
+            ISBN
+
+          </label>
+
+          <input
+            id="isbn"
+            name="isbn"
+            type="text"
+            class="form-control"
+            [(ngModel)]="filtros.isbn"
+            placeholder="ISBN">
+
+        </div>
+
+
+        <div class="col-12 col-md-6 col-xl-3">
+
+          <label
+            for="tipo"
+            class="form-label">
+
+            Tipo
+
+          </label>
+
+          <input
+            id="tipo"
+            name="tipo"
+            type="text"
+            class="form-control"
+            [(ngModel)]="filtros.tipo"
+            placeholder="Libro, revista...">
+
+        </div>
+
+
+        <div class="col-12 col-md-6 col-xl-3">
+
+          <label
+            for="anio"
+            class="form-label">
+
+            Año
+
+          </label>
+
+          <input
+            id="anio"
+            name="anio"
+            type="text"
+            class="form-control"
+            [(ngModel)]="filtros.anio"
+            placeholder="2026">
+
+        </div>
+
+
+        <div class="col-12 col-md-6 col-xl-3">
+          <label for="editorial" class="form-label">Editorial</label>
+          <select id="editorial" name="editorial" class="form-select"
+                  [(ngModel)]="filtros.idEditorial">
+            <option [ngValue]="null">Todas las editoriales</option>
+            <option *ngFor="let editorial of editoriales" [ngValue]="editorial.idEditorial">
+              {{ editorial.nombre }}
+            </option>
+          </select>
+        </div>
+
+
+        <div class="col-12 col-md-6 col-xl-3">
+
+          <label
+            for="catalogo"
+            class="form-label">
+
+            En catálogo FCA
+
+          </label>
+
+          <select
+            id="catalogo"
+            name="catalogo"
+            class="form-select"
+            [(ngModel)]="filtros.enCatalogoBiblioFca">
+
+            <option [ngValue]="null">
+              Todos
+            </option>
+
+            <option [ngValue]="true">
+              Sí
+            </option>
+
+            <option [ngValue]="false">
+              No
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-4">
+          <label for="filtroPrograma" class="form-label">Programa educativo</label>
+          <select id="filtroPrograma" class="form-select" [(ngModel)]="filtros.idProgramaEducativo">
+            <option [ngValue]="null">Todos los programas</option>
+            <option *ngFor="let programa of programasEducativos" [ngValue]="programa.idProgramaEducativo">
+              {{ programa.nombre }} — Plan {{ programa.anio }}
+            </option>
+          </select>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+          <label for="filtroAcademia" class="form-label">Academia</label>
+          <select id="filtroAcademia" class="form-select" [(ngModel)]="filtros.idAcademia">
+            <option [ngValue]="null">Todas las academias</option>
+            <option *ngFor="let academia of academias" [ngValue]="academia.idAcademia">{{ academia.nombre }}</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+          <label for="filtroExperiencia" class="form-label">Experiencia educativa</label>
+          <select id="filtroExperiencia" class="form-select" [(ngModel)]="filtros.idExperienciaEducativa">
+            <option [ngValue]="null">Todas las experiencias</option>
+            <option *ngFor="let experiencia of experienciasEducativas" [ngValue]="experiencia.idExperienciaEducativa">{{ experiencia.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+
+      <div
+        class="d-flex
+               justify-content-end
+               gap-2
+               mt-4">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          (click)="limpiarFiltros()">
+
+          Limpiar
+
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="buscar()">
+
+          Buscar
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================== -->
+  <!-- ERROR -->
+  <!-- ===================================== -->
+
+  <div
+    *ngIf="mensajeError"
+    class="alert alert-danger">
+
+    {{ mensajeError }}
+
+  </div>
+
+
+  <div *ngIf="mensajeExito" class="alert alert-success" role="status">{{ mensajeExito }}</div>
+
+  <!-- ===================================== -->
+  <!-- CONTADOR -->
+  <!-- ===================================== -->
+
+  <div
+    class="results-header
+           d-flex
+           justify-content-between
+           align-items-center
+           mb-3">
+
+    <div>
+
+      <strong>
+        Recursos registrados
+      </strong>
+
+      <span class="results-count">
+        {{ recursos.length }}
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================== -->
+  <!-- CARGANDO -->
+  <!-- ===================================== -->
+
+  <div
+    *ngIf="cargando"
+    class="loading-container">
+
+    <div
+      class="spinner-border"
+      role="status">
+
+      <span class="visually-hidden">
+        Cargando...
+      </span>
+
+    </div>
+
+    <p>
+      Consultando recursos...
+    </p>
+
+  </div>
+
+
+  <!-- ===================================== -->
+  <!-- TABLA -->
+  <!-- ===================================== -->
+
+  <div
+    *ngIf="!cargando"
+    class="card table-card">
+
+    <div class="table-responsive">
+
+      <table
+        class="table
+               table-hover
+               align-middle
+               mb-0">
+
+        <thead>
+
+        <tr>
+
+          <th>
+            ISBN
+          </th>
+
+          <th>
+            Título
+          </th>
+
+          <th (click)="cambiarOrden('autor')" style="cursor:pointer" title="Ordenar por autor">
+            Autor
+          </th>
+
+          <th>
+            Tipo
+          </th>
+
+          <th>
+            Editorial
+          </th>
+
+          <th class="text-center">
+            Cantidad
+          </th>
+
+          <th class="text-center">
+            Catálogo FCA
+          </th>
+
+          <th class="text-end">
+            Acciones
+          </th>
+
+        </tr>
+
+        </thead>
+
+
+        <tbody>
+
+        <tr
+          *ngFor="let recurso of recursosOrdenados">
+
+          <td>
+
+              <span class="isbn">
+                {{
+                  recurso.isbn ||
+                  'Sin ISBN'
+                }}
+              </span>
+
+          </td>
+
+
+          <td>
+
+            <strong class="resource-title">
+              {{ recurso.titulo }}
+            </strong>
+
+            <span class="resource-year">
+                {{
+                recurso.anio ||
+                'Año no especificado'
+              }}
+              </span>
+
+          </td>
+
+
+          <td>
+            {{
+              recurso.autor ||
+              'Sin autor'
+            }}
+          </td>
+
+
+          <td>
+
+              <span
+                class="badge
+                       text-bg-light
+                       border">
+
+                {{
+                  recurso.tipo ||
+                  'Sin tipo'
+                }}
+
+              </span>
+
+          </td>
+
+
+          <td>
+            {{ obtenerEditorial(recurso) }}
+          </td>
+
+
+          <td class="text-center">
+
+              <span class="quantity">
+                {{ recurso.cantidad }}
+              </span>
+
+          </td>
+
+
+          <td class="text-center">
+
+              <span
+                class="badge"
+                [class.text-bg-success]="
+                  recurso.enCatalogoBiblioFca
+                "
+                [class.text-bg-secondary]="
+                  !recurso.enCatalogoBiblioFca
+                ">
+
+                {{ obtenerCatalogo(recurso) }}
+
+              </span>
+
+          </td>
+
+
+          <td class="text-end">
+
+            <button
+              type="button"
+              class="btn
+                       btn-sm
+                       btn-outline-primary"
+              (click)="verDetalle(recurso)">
+
+              Ver
+
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-1"
+                    (click)="editarRecurso(recurso)">Editar</button>
+            <button type="button" class="btn btn-sm btn-outline-danger ms-1"
+                    [disabled]="eliminandoId === recurso.idRecursoDocumental"
+                    (click)="confirmarEliminar(recurso)">Eliminar</button>
+
+          </td>
+
+        </tr>
+
+
+        <tr
+          *ngIf="recursos.length === 0">
+
+          <td
+            colspan="8"
+            class="empty-state">
+
+            <div class="empty-icon">
+              📚
+            </div>
+
+            <strong>
+              No se encontraron recursos
+            </strong>
+
+            <span>
+                Intenta modificar los filtros
+                de búsqueda.
+              </span>
+
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================== -->
+  <!-- PANEL DE DETALLE -->
+  <!-- ===================================== -->
+
+  <div
+    *ngIf="recursoSeleccionado"
+    class="detail-overlay"
+    (click)="cerrarDetalle()">
+
+    <div
+      class="detail-panel"
+      (click)="$event.stopPropagation()">
+
+
+      <!-- ENCABEZADO -->
+
+      <div class="detail-header">
+
+        <div>
+
+          <span>
+            Detalle del recurso
+          </span>
+
+          <h2>
+            {{ recursoSeleccionado.titulo }}
+          </h2>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Cerrar"
+          (click)="cerrarDetalle()">
+        </button>
+
+      </div>
+
+
+      <div class="detail-scroll">
+
+
+        <!-- ================================= -->
+        <!-- INFORMACIÓN BIBLIOGRÁFICA -->
+        <!-- ================================= -->
+
+        <section class="detail-section">
+
+          <div class="section-title">
+
+            <div class="section-icon">
+              📖
+            </div>
+
+            <div>
+
+              <h3>
+                Información bibliográfica
+              </h3>
+
+              <p>
+                Datos generales del recurso
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="detail-grid">
+
+
+            <div class="detail-item">
+
+              <label>
+                ISBN
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.isbn ||
+                  'Sin ISBN'
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <label>
+                Autor
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.autor ||
+                  'Sin autor'
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <label>
+                Editorial
+              </label>
+
+              <span>
+                {{
+                  obtenerEditorial(
+                    recursoSeleccionado
+                  )
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <label>
+                Edición
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.edicion ||
+                  'No especificada'
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <label>
+                Año
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.anio ||
+                  'No especificado'
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <label>
+                Tipo
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.tipo ||
+                  'No especificado'
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+              <label>Formato</label>
+              <span>{{ recursoSeleccionado.formato === 'ELECTRONICO' ? 'Electrónico' : (recursoSeleccionado.formato === 'FISICO' ? 'Físico' : 'No especificado') }}</span>
+            </div>
+            <div class="detail-item full" *ngIf="recursoSeleccionado.formato === 'ELECTRONICO'">
+              <label>Enlace al recurso electrónico</label>
+              <a *ngIf="urlHttpValida(recursoSeleccionado.urlRecurso)"
+                 [href]="recursoSeleccionado.urlRecurso" target="_blank" rel="noopener noreferrer">
+                Abrir recurso electrónico ↗
+              </a>
+              <span *ngIf="!urlHttpValida(recursoSeleccionado.urlRecurso)">Enlace no disponible</span>
+            </div>
+            <div class="detail-item">
+
+              <label>
+                Cantidad
+              </label>
+
+              <span>
+                {{ recursoSeleccionado.cantidad }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <label>
+                En catálogo FCA
+              </label>
+
+              <span
+                class="badge"
+                [class.text-bg-success]="
+                  recursoSeleccionado.enCatalogoBiblioFca
+                "
+                [class.text-bg-secondary]="
+                  !recursoSeleccionado.enCatalogoBiblioFca
+                ">
+
+                {{
+                  obtenerCatalogo(
+                    recursoSeleccionado
+                  )
+                }}
+
+              </span>
+
+            </div>
+
+
+            <div class="detail-item full">
+
+              <label>
+                Movimiento
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.movimiento ||
+                  'No especificado'
+                }}
+              </span>
+
+            </div>
+
+
+            <div class="detail-item full">
+
+              <label>
+                Observaciones
+              </label>
+
+              <span>
+                {{
+                  recursoSeleccionado.observaciones ||
+                  'Sin observaciones'
+                }}
+              </span>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ================================= -->
+        <!-- VINCULACIÓN ACADÉMICA -->
+        <!-- ================================= -->
+
+        <section class="detail-section academic-section">
+
+          <div class="section-title">
+
+            <div class="section-icon">
+              🎓
+            </div>
+
+            <div>
+
+              <h3>
+                Vinculación académica
+              </h3>
+
+              <p>
+                Experiencias educativas,
+                academias y programas relacionados
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- SIN VINCULACIONES -->
+
+          <div
+            *ngIf="
+              !tieneVinculacionesAcademicas(
+                recursoSeleccionado
+              )
+            "
+            class="no-academic-links">
+
+            <div class="no-academic-icon">
+              🎓
+            </div>
+
+            <strong>
+              Sin vinculaciones académicas
+            </strong>
+
+            <p>
+              Este recurso no está relacionado
+              con ninguna experiencia educativa.
+            </p>
+
+          </div>
+
+
+          <!-- VINCULACIONES NUEVAS, SELECCIONADAS EXPLÍCITAMENTE -->
+          <div *ngIf="tieneVinculacionesNuevas(recursoSeleccionado)" class="academic-list">
+            <div *ngFor="let vinculacion of recursoSeleccionado.vinculacionesAcademicas"
+                 class="experience-card mb-3">
+              <div class="experience-header">
+                <div class="experience-number">EE</div>
+                <div>
+                  <span class="academic-label">Experiencia educativa</span>
+                  <h4>{{ vinculacion.experienciaEducativa.nombre }}</h4>
+                </div>
+              </div>
+              <div class="academies-container">
+                <div class="academy-item">
+                  <div class="academy-header">
+                    <span class="academy-icon">🏛️</span>
+                    <div>
+                      <span class="academic-label">Academia seleccionada</span>
+                      <strong>{{ vinculacion.academia.nombre }}</strong>
+                    </div>
+                  </div>
+                  <div class="programs-container">
+                    <span class="programs-title">Programa educativo seleccionado</span>
+                    <div class="program-list">
+                      <div class="program-badge">
+                        <strong>{{ vinculacion.programaEducativo.nombreCorto }}</strong>
+                        <span>{{ vinculacion.programaEducativo.nombre }}</span>
+                        <small>Plan {{ vinculacion.programaEducativo.anio }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXPERIENCIAS -->
+
+          <div
+            *ngIf="
+              !tieneVinculacionesNuevas(recursoSeleccionado) &&
+              tieneVinculacionesAcademicas(recursoSeleccionado)
+            "
+            class="academic-list">
+
+            <div
+              *ngFor="
+                let experiencia
+                of recursoSeleccionado.experienciasEducativas
+              "
+              class="experience-card">
+
+
+              <!-- EXPERIENCIA -->
+
+              <div class="experience-header">
+
+                <div class="experience-number">
+                  EE
+                </div>
+
+                <div>
+
+                  <span class="academic-label">
+                    Experiencia educativa
+                  </span>
+
+                  <h4>
+                    {{ experiencia.nombre }}
+                  </h4>
+
+                  <p
+                    *ngIf="experiencia.descripcion">
+
+                    {{ experiencia.descripcion }}
+
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <!-- ACADEMIAS -->
+
+              <div
+                *ngIf="
+                  tieneAcademias(
+                    experiencia.academias
+                  )
+                "
+                class="academies-container">
+
+                <div
+                  *ngFor="
+                    let academia
+                    of experiencia.academias
+                  "
+                  class="academy-item">
+
+
+                  <div class="academy-header">
+
+                    <span class="academy-icon">
+                      🏛️
+                    </span>
+
+                    <div>
+
+                      <span class="academic-label">
+                        Academia
+                      </span>
+
+                      <strong>
+                        {{ academia.nombre }}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+
+                  <!-- PROGRAMAS -->
+
+                  <div
+                    *ngIf="
+                      tieneProgramas(
+                        academia.programasEducativos
+                      )
+                    "
+                    class="programs-container">
+
+                    <span class="programs-title">
+                      Programas educativos
+                    </span>
+
+
+                    <div class="program-list">
+
+                      <div
+                        *ngFor="
+                          let programa
+                          of academia.programasEducativos
+                        "
+                        class="program-badge">
+
+                        <strong>
+                          {{ programa.nombreCorto }}
+                        </strong>
+
+                        <span>
+                          {{ programa.nombre }}
+                        </span>
+
+                        <small>
+                          Plan {{ programa.anio }}
+                        </small>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+
+                  <!-- SIN PROGRAMAS -->
+
+                  <div
+                    *ngIf="
+                      !tieneProgramas(
+                        academia.programasEducativos
+                      )
+                    "
+                    class="no-programs">
+
+                    Sin programas educativos
+                    relacionados.
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <!-- SIN ACADEMIAS -->
+
+              <div
+                *ngIf="
+                  !tieneAcademias(
+                    experiencia.academias
+                  )
+                "
+                class="no-programs">
+
+                Esta experiencia educativa
+                no tiene academias relacionadas.
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+
+      <!-- FOOTER -->
+
+      <div class="detail-footer">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          (click)="cerrarDetalle()">
+
+          Cerrar
+
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary" (click)="editarRecurso(recursoSeleccionado)">
+
+          Editar recurso
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- FORMULARIO DE NUEVO RECURSO -->
+  <div *ngIf="mostrarFormulario" class="detail-overlay" (click)="cerrarFormulario()">
+    <div class="detail-panel" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <div>
+          <span>Gestión documental</span>
+          <h2>{{ modoFormulario === 'editar' ? 'Editar recurso documental' : 'Registrar nuevo recurso' }}</h2>
+        </div>
+        <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrarFormulario()"></button>
+      </div>
+
+      <form #recursoForm="ngForm" (ngSubmit)="guardarNuevoRecurso()" class="resource-form">
+        <div class="detail-scroll">
+          <section class="detail-section">
+            <div class="section-title">
+              <div class="section-icon">📖</div>
+              <div>
+                <h3>Información bibliográfica</h3>
+                <p>Datos generales del recurso documental</p>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label" for="nuevoTitulo">Título *</label>
+                <input id="nuevoTitulo" name="titulo" class="form-control" type="text"
+                       [(ngModel)]="nuevoRecurso.titulo" required maxlength="255" placeholder="Título del recurso">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoIsbn">ISBN</label>
+                <input id="nuevoIsbn" name="isbn" class="form-control" type="text"
+                       [(ngModel)]="nuevoRecurso.isbn" placeholder="ISBN">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoAutor">Autor</label>
+                <input id="nuevoAutor" name="autor" class="form-control" type="text"
+                       [(ngModel)]="nuevoRecurso.autor" placeholder="Nombre del autor">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoTipo">Tipo de recurso *</label>
+                <select id="nuevoTipo" name="tipo" class="form-select" [(ngModel)]="nuevoRecurso.tipo" required>
+                  <option [ngValue]="null">Selecciona un tipo</option>
+                  <option value="Libro">Libro</option>
+                  <option value="Revista">Revista</option>
+                  <option value="Tesis">Tesis</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <!-- Formato y acceso electrónico -->
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoFormato">Formato del recurso *</label>
+                <select id="nuevoFormato" name="formato" class="form-select"
+                        [(ngModel)]="nuevoRecurso.formato" (ngModelChange)="cambiarFormato($event)" required>
+                  <option value="FISICO">Físico</option>
+                  <option value="ELECTRONICO">Electrónico</option>
+                </select>
+              </div>
+              <div class="col-12" *ngIf="nuevoRecurso.formato === 'ELECTRONICO'">
+                <label class="form-label" for="nuevoUrlRecurso">URL del recurso electrónico *</label>
+                <input id="nuevoUrlRecurso" name="urlRecurso" class="form-control"
+                       type="url" [(ngModel)]="nuevoRecurso.urlRecurso"
+                       placeholder="https://ejemplo.com/libro" maxlength="2048" required
+                       pattern="https?://.+">
+                <small class="text-muted">Escribe el enlace completo, comenzando por https:// o http://.</small>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Editorial</label>
+                <div class="d-flex flex-wrap gap-3 mb-2">
+                  <label class="form-check-label">
+                    <input class="form-check-input me-1" type="radio" name="modoEditorial"
+                           [ngModel]="modoEditorial" (ngModelChange)="cambiarModoEditorial($event)" value="existente">
+                    Seleccionar editorial existente
+                  </label>
+                  <label class="form-check-label">
+                    <input class="form-check-input me-1" type="radio" name="modoEditorial"
+                           [ngModel]="modoEditorial" (ngModelChange)="cambiarModoEditorial($event)" value="nueva">
+                    Escribir editorial nueva
+                  </label>
+                </div>
+                <select *ngIf="modoEditorial === 'existente'" id="editorialExistente" name="idEditorial"
+                        class="form-select" [(ngModel)]="idEditorialSeleccionada">
+                  <option [ngValue]="null">Sin editorial</option>
+                  <option *ngFor="let editorial of editoriales" [ngValue]="editorial.idEditorial">
+                    {{ editorial.nombre }}
+                  </option>
+                </select>
+                <input *ngIf="modoEditorial === 'nueva'" id="editorialNueva" name="nombreNuevaEditorial"
+                       class="form-control" [(ngModel)]="nombreNuevaEditorial"
+                       required maxlength="255" placeholder="Escribe el nombre de la editorial">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevaEdicion">Edición</label>
+                <input id="nuevaEdicion" name="edicion" class="form-control"
+                       [(ngModel)]="nuevoRecurso.edicion" placeholder="Ej. Segunda edición">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoAnio">Año de publicación</label>
+                <input id="nuevoAnio" name="anio" class="form-control"
+                       [(ngModel)]="nuevoRecurso.anio" placeholder="Ej. 2026">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevaCantidad">Cantidad *</label>
+                <input id="nuevaCantidad" name="cantidad" class="form-control" type="number"
+                       min="1" step="1" required [(ngModel)]="nuevoRecurso.cantidad">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoMovimiento">Movimiento</label>
+                <select id="nuevoMovimiento" name="movimiento" class="form-select"
+                        [(ngModel)]="nuevoRecurso.movimiento">
+                  <option [ngValue]="null">Sin especificar</option>
+                  <option value="NECESIDAD_ADQUISICION">Necesidad de adquisición</option>
+                  <option value="DONACION">Donación</option>
+                  <option value="BAJA">Baja</option>
+                  <option value="DESCARTE">Descarte</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nuevoCatalogo">¿En catálogo FCA?</label>
+                <select id="nuevoCatalogo" name="catalogo" class="form-select"
+                        [(ngModel)]="nuevoRecurso.enCatalogoBiblioFca">
+                  <option [ngValue]="true">Sí</option>
+                  <option [ngValue]="false">No</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="nuevasObservaciones">Observaciones</label>
+                <textarea id="nuevasObservaciones" name="observaciones" class="form-control" rows="3"
+                          [(ngModel)]="nuevoRecurso.observaciones"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-section academic-section">
+            <div class="section-title">
+              <div class="section-icon">🎓</div>
+              <div>
+                <h3>Vinculación académica</h3>
+                <p>Agrega las combinaciones específicas de programa, academia y experiencia educativa.</p>
+              </div>
+            </div>
+            <div *ngIf="cargandoCatalogos" class="alert alert-info">Cargando catálogos...</div>
+            <div *ngIf="mensajeCatalogos" class="alert alert-danger">
+              {{ mensajeCatalogos }}
+              <button type="button" class="btn btn-sm btn-outline-danger ms-2"
+                      (click)="cargarCatalogos()">Reintentar</button>
+            </div>
+            <div *ngIf="!cargandoCatalogos && !mensajeCatalogos" class="row g-3">
+              <div class="col-12">
+                <label for="programaSeleccionado" class="form-label">Programa educativo y plan</label>
+                <select id="programaSeleccionado" name="programaSeleccionado" class="form-select"
+                        [(ngModel)]="idProgramaSeleccionado" (ngModelChange)="cambiarPrograma()">
+                  <option [ngValue]="null">Selecciona un programa educativo</option>
+                  <option *ngFor="let programa of programasEducativos" [ngValue]="programa.idProgramaEducativo">
+                    {{ programa.nombre }} — {{ programa.nombreCorto }} (Plan {{ programa.anio }})
+                  </option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="academiaSeleccionada" class="form-label">Academia</label>
+                <select id="academiaSeleccionada" name="academiaSeleccionada" class="form-select"
+                        [(ngModel)]="idAcademiaSeleccionada" (ngModelChange)="cambiarAcademia()"
+                        [disabled]="idProgramaSeleccionado === null">
+                  <option [ngValue]="null">Selecciona una academia</option>
+                  <option *ngFor="let academia of academiasDisponibles" [ngValue]="academia.idAcademia">
+                    {{ academia.nombre }}
+                  </option>
+                </select>
+                <small *ngIf="idProgramaSeleccionado !== null && academiasDisponibles.length === 0"
+                       class="text-muted">No hay academias relacionadas con este programa.</small>
+              </div>
+              <div class="col-12">
+                <label for="experienciaSeleccionada" class="form-label">Experiencia educativa</label>
+                <select id="experienciaSeleccionada" name="experienciaSeleccionada" class="form-select"
+                        [(ngModel)]="idExperienciaSeleccionada"
+                        [disabled]="idAcademiaSeleccionada === null">
+                  <option [ngValue]="null">Selecciona una experiencia educativa</option>
+                  <option *ngFor="let experiencia of experienciasDisponibles"
+                          [ngValue]="experiencia.idExperienciaEducativa">
+                    {{ experiencia.nombre }}
+                  </option>
+                </select>
+                <small *ngIf="idAcademiaSeleccionada !== null && experienciasDisponibles.length === 0"
+                       class="text-muted">No hay experiencias educativas relacionadas con esta academia.</small>
+              </div>
+              <div class="col-12">
+                <button type="button" class="btn btn-outline-primary w-100"
+                        (click)="agregarVinculacion()"
+                        [disabled]="idProgramaSeleccionado === null || idAcademiaSeleccionada === null || idExperienciaSeleccionada === null">
+                  + Agregar vinculación académica
+                </button>
+              </div>
+            </div>
+            <div class="selected-academic-links mt-4">
+              <h4 class="h6 mb-3">Vinculaciones agregadas ({{ vinculacionesSeleccionadas.length }})</h4>
+              <p *ngIf="vinculacionesSeleccionadas.length === 0" class="text-muted small">
+                Todavía no has agregado ninguna vinculación.
+              </p>
+              <div *ngFor="let vinculacion of vinculacionesSeleccionadas; let i = index"
+                   class="academy-item d-flex justify-content-between align-items-start gap-3 mb-2">
+                <div>
+                  <strong>{{ nombrePrograma(vinculacion.idProgramaEducativo) }}</strong>
+                  <div class="small text-muted">Academia: {{ nombreAcademia(vinculacion.idAcademia) }}</div>
+                  <div class="small text-muted">Experiencia: {{ nombreExperiencia(vinculacion.idExperienciaEducativa) }}</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                        (click)="quitarVinculacion(i)">Quitar</button>
+              </div>
+            </div>
+          </section>
+          <div *ngIf="mensajeFormulario" class="alert alert-danger mx-4 my-3" role="alert">
+            {{ mensajeFormulario }}
+          </div>
+        </div>
+        <div class="detail-footer">
+          <button type="button" class="btn btn-light" [disabled]="guardando"
+                  (click)="cerrarFormulario()">Cancelar</button>
+          <button type="submit" class="btn btn-primary"
+                  [disabled]="recursoForm.invalid || guardando || cargandoCatalogos || !!mensajeCatalogos">
+            {{ guardando ? 'Guardando...' : (modoFormulario === 'editar' ? 'Guardar cambios' : 'Guardar recurso') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

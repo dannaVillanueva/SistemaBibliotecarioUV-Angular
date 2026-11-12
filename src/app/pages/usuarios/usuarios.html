@@ -1,0 +1,64 @@
+<section class="usuarios-pagina">
+  <div class="usuarios-encabezado">
+    <div><h1>👥 Gestión de usuarios</h1><p>Administra las cuentas y los permisos de la Biblioteca FCA.</p></div>
+    <button class="btn primario" type="button" (click)="nuevo()">+ Registrar usuario</button>
+  </div>
+
+  <div *ngIf="mensaje" class="alerta exito">{{ mensaje }} <button type="button" (click)="mensaje = ''">×</button></div>
+  <div *ngIf="error && !modal" class="alerta error">{{ error }} <button type="button" (click)="error = ''">×</button></div>
+
+  <div class="usuarios-resumen">
+    <div><span>Total de usuarios</span><strong>{{ usuarios.length }}</strong></div>
+    <div><span>Usuarios activos</span><strong>{{ activos }}</strong></div>
+    <div><span>Usuarios inactivos</span><strong>{{ inactivos }}</strong></div>
+    <div><span>Responsables</span><strong>{{ responsables }}</strong></div>
+  </div>
+
+  <div class="usuarios-panel">
+    <div class="usuarios-filtros">
+      <input type="search" placeholder="Buscar por nombre o correo" [(ngModel)]="busqueda" aria-label="Buscar usuarios">
+      <select [(ngModel)]="filtroEstado" aria-label="Filtrar por estado">
+        <option value="TODOS">Todos los usuarios</option>
+        <option value="ACTIVOS">Activos</option>
+        <option value="INACTIVOS">Inactivos</option>
+      </select>
+      <button type="button" class="btn secundario" (click)="cargar()">↻ Actualizar</button>
+    </div>
+    <div class="usuarios-tabla-scroll">
+      <table>
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let u of filtrados">
+            <td><strong>{{ u.nombre }}</strong></td>
+            <td>{{ u.correo }}</td>
+            <td>{{ u.rol === 'RESPONSABLE_BIBLIOTECA' ? 'Responsable de Biblioteca' : 'Personal de Biblioteca' }}</td>
+            <td><span class="estado" [class.activo]="u.activo">{{ u.activo ? 'Activo' : 'Inactivo' }}</span></td>
+            <td class="usuarios-acciones">
+              <button type="button" class="btn secundario" (click)="editar(u)">✏️ Editar</button>
+              <button type="button" class="btn secundario" (click)="cambiarEstado(u)">{{ u.activo ? '🔒 Desactivar' : '🔓 Reactivar' }}</button>
+            </td>
+          </tr>
+          <tr *ngIf="!cargando && filtrados.length === 0"><td colspan="5" class="vacio">No se encontraron usuarios.</td></tr>
+          <tr *ngIf="cargando"><td colspan="5" class="vacio">Cargando usuarios...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="usuarios-modal-fondo" *ngIf="modal" role="dialog" aria-modal="true" aria-label="Formulario de usuario">
+  <div class="usuarios-modal">
+    <div class="usuarios-modal-header"><div><h2>{{ editando === null ? 'Registrar usuario' : 'Editar usuario' }}</h2><p>Completa los datos de la cuenta.</p></div><button type="button" (click)="cerrar()">×</button></div>
+    <div class="alerta error" *ngIf="error">{{ error }}</div>
+    <form (ngSubmit)="guardar()">
+      <div class="usuarios-campos">
+        <label>Nombre completo *<input name="nombre" type="text" [(ngModel)]="formulario.nombre" required></label>
+        <label>Correo electrónico *<input name="correo" type="email" [(ngModel)]="formulario.correo" required></label>
+        <label>Rol *<select name="rol" [(ngModel)]="formulario.rol" required><option value="RESPONSABLE_BIBLIOTECA">Responsable de Biblioteca</option><option value="PERSONAL_BIBLIOTECA">Personal de Biblioteca</option></select></label>
+        <label>{{ editando === null ? 'Contraseña *' : 'Nueva contraseña (opcional)' }}<input name="password" type="password" [(ngModel)]="formulario.password" [required]="editando === null" minlength="8" autocomplete="new-password"></label>
+      </div>
+      <p class="usuarios-ayuda">{{ editando === null ? 'La contraseña debe tener al menos 8 caracteres.' : 'Deja la contraseña vacía para conservar la actual.' }}</p>
+      <div class="usuarios-modal-acciones"><button class="btn secundario" type="button" (click)="cerrar()">Cancelar</button><button class="btn primario" type="submit" [disabled]="guardando">{{ guardando ? 'Guardando...' : 'Guardar usuario' }}</button></div>
+    </form>
+  </div>
+</div>

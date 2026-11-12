@@ -1,0 +1,127 @@
+:host { display: block; }
+
+.login-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #fff;
+}
+
+.login-info {
+  position: relative;
+  min-height: 100vh;
+  background-image: url('/Foto-Biblioteca.jpeg');
+  background-color: #16436a;
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  overflow: hidden;
+}
+
+.photo-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(4, 35, 68, .16) 0%, rgba(4, 35, 68, .18) 44%, rgba(3, 31, 61, .84) 100%);
+}
+
+.photo-brand {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 30px 42px 54px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.institution-tag {
+  align-self: flex-start;
+  padding: 9px 13px;
+  border-radius: 6px;
+  background: rgba(0, 69, 126, .88);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.photo-copy { max-width: 590px; }
+.photo-eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .04em; }
+.photo-copy h1 { margin: 13px 0 18px; font-size: clamp(32px, 3.1vw, 54px); line-height: 1.12; font-weight: 800; }
+.photo-copy p { margin: 0; max-width: 440px; line-height: 1.7; font-size: 15px; color: rgba(255,255,255,.91); }
+
+.login-form-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 65px 45px 85px;
+  background: #fff;
+}
+
+.login-form { width: 100%; max-width: 370px; }
+.form-header { text-align: center; margin-bottom: 37px; }
+.book-mark { font-size: 40px; margin-bottom: 14px; }
+.system-eyebrow { color: #26805b; font-size: 11px; font-weight: 800; letter-spacing: .12em; }
+.form-header h2 { margin: 11px 0 15px; color: #07508d; font-size: clamp(27px, 2.5vw, 37px); line-height: 1.12; font-weight: 800; }
+.form-header h2 span { color: #3b9b67; }
+.form-header p { margin: 0; color: #344054; font-size: 12px; line-height: 1.65; }
+.login-heading { margin: 0 0 22px; text-align: center; color: #004b85; font-size: 19px; font-weight: 800; letter-spacing: .03em; }
+
+.form-group { margin-bottom: 19px; }
+.form-group label { display: block; margin-bottom: 8px; color: #25384d; font-size: 13px; font-weight: 700; }
+.form-group input {
+  width: 100%; height: 46px; padding: 0 15px; box-sizing: border-box;
+  border: 1px solid #d5dee9; border-radius: 9px; outline: none;
+  background: #fff; color: #243247; font-size: 14px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-group input:focus { border-color: #0875c9; box-shadow: 0 0 0 3px rgba(8,117,201,.12); }
+.form-group input:disabled { background: #f5f7fa; }
+.password-container { position: relative; }
+.password-container input { padding-right: 80px; }
+.show-password {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  padding: 6px; border: 0; background: transparent; color: #075c9f;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.show-password:disabled { opacity: .5; cursor: not-allowed; }
+.error-message { margin-bottom: 17px; padding: 12px 14px; border-radius: 8px; background: #fff0f0; color: #b42318; font-size: 13px; }
+.login-button {
+  width: 100%; height: 47px; margin-top: 4px; border: 0; border-radius: 24px;
+  background: linear-gradient(90deg, #075ab1, #087cf0); color: #fff;
+  font-size: 13px; font-weight: 800; letter-spacing: .07em;
+  cursor: pointer; box-shadow: 0 6px 15px rgba(0,95,184,.2);
+  transition: transform .2s, filter .2s;
+}
+.login-button:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+.login-button:disabled { opacity: .65; cursor: not-allowed; }
+.security-text { margin: 20px 0 0; color: #7b8797; text-align: center; font-size: 11px; }
+.form-footer { position: absolute; bottom: 22px; color: #9aa5b3; font-size: 11px; text-align: center; }
+
+@media (max-width: 850px) {
+  .login-container { grid-template-columns: 1fr; }
+  .login-info { min-height: 220px; }
+  .photo-brand { min-height: 220px; padding: 22px 28px; }
+  .photo-copy h1 { font-size: 29px; margin: 8px 0; }
+  .photo-copy p { display: none; }
+  .login-form-container { min-height: calc(100vh - 220px); padding: 50px 25px 75px; }
+}
+
+@media (max-width: 480px) {
+  .login-info, .photo-brand { min-height: 165px; }
+  .photo-brand { padding: 15px 20px; }
+  .photo-copy h1 { font-size: 24px; }
+  .photo-eyebrow { font-size: 11px; }
+  .institution-tag { font-size: 9px; padding: 6px 9px; }
+  .login-form-container { min-height: calc(100vh - 165px); padding: 42px 22px 70px; }
+  .form-header { margin-bottom: 28px; }
+  .form-header h2 { font-size: 28px; }
+  .form-footer { bottom: 16px; font-size: 10px; }
+}

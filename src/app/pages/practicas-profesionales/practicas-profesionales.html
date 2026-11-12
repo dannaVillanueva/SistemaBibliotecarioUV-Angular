@@ -1,0 +1,638 @@
+<section class="practicas-profesionales">
+
+  <!-- ENCABEZADO -->
+  <div class="encabezado">
+    <div>
+      <a
+        routerLink="/servicio-practicas"
+        class="btn-regresar">
+        <span class="flecha-regresar" aria-hidden="true">←</span>
+        <span>Servicio Social y Prácticas</span>
+      </a>
+
+
+      <h1>Prácticas Profesionales</h1>
+
+      <p>
+        Administración de estudiantes y control de horas de Prácticas Profesionales.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-primario"
+      (click)="abrirNuevo()">
+      ➕ Registrar estudiante
+    </button>
+  </div>
+
+  <!-- MENSAJES -->
+  <div class="alerta exito" *ngIf="mensaje">
+    <span>{{ mensaje }}</span>
+    <button type="button" (click)="mensaje = ''">×</button>
+  </div>
+
+  <div
+    class="alerta error"
+    *ngIf="error && !mostrarFormulario && !mostrarAsistencia">
+    <span>{{ error }}</span>
+    <button type="button" (click)="error = ''">×</button>
+  </div>
+
+  <!-- ESTADÍSTICAS -->
+  <div class="estadisticas">
+
+    <div class="estadistica">
+      <span>Total estudiantes</span>
+      <strong>{{ alumnos.length }}</strong>
+    </div>
+
+    <div class="estadistica">
+      <span>Activos</span>
+      <strong>{{ totalActivos }}</strong>
+    </div>
+
+    <div class="estadistica">
+      <span>Inactivos / finalizados</span>
+      <strong>{{ totalInactivos }}</strong>
+    </div>
+
+    <div class="estadistica">
+      <span>Horas acumuladas</span>
+      <strong>
+        {{ horasAcumuladas | number:'1.0-2' }} h
+      </strong>
+    </div>
+
+  </div>
+
+  <!-- LISTADO -->
+  <div class="panel">
+
+    <div class="filtros">
+
+      <input
+        type="text"
+        [(ngModel)]="busqueda"
+        placeholder="Buscar por nombre o matrícula">
+
+      <select [(ngModel)]="filtroEstado">
+        <option value="TODOS">Todos los estudiantes</option>
+        <option value="ACTIVOS">Activos</option>
+        <option value="INACTIVOS">Inactivos / finalizados</option>
+      </select>
+
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="cargarDatos()">
+        🔄 Actualizar
+      </button>
+
+    </div>
+
+    <div class="tabla-contenedor">
+      <table>
+
+        <thead>
+        <tr>
+          <th>Matrícula</th>
+          <th>Estudiante</th>
+          <th>Programa educativo</th>
+          <th>Periodo</th>
+          <th>Progreso</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let alumno of alumnosFiltrados">
+
+          <td>{{ alumno.matricula }}</td>
+
+          <td>
+            <strong>{{ alumno.nombreCompleto }}</strong>
+            <small>{{ alumno.correo }}</small>
+          </td>
+
+          <td>
+            {{
+            alumno.programaEducativoCorto ||
+            alumno.programaEducativo
+            }}
+          </td>
+
+          <td>
+            {{ alumno.fechaInicio }}
+            <small>al {{ alumno.fechaFin }}</small>
+          </td>
+
+          <td>
+            <div class="progreso-info">
+              {{ alumno.horasRealizadas | number:'1.0-2' }}
+              / {{ alumno.horasRequeridas }} h
+            </div>
+
+            <div class="barra-progreso">
+              <div
+                [style.width.%]="
+                    alumno.porcentajeAvance > 100
+                      ? 100
+                      : alumno.porcentajeAvance
+                  ">
+              </div>
+            </div>
+
+            <small>
+              {{ alumno.porcentajeAvance | number:'1.0-1' }}%
+            </small>
+          </td>
+
+          <td>
+              <span
+                class="estado"
+                [class.activo]="alumno.activo">
+                {{
+                  alumno.estado ||
+                  (alumno.activo ? 'Activo' : 'Inactivo')
+                }}
+              </span>
+          </td>
+
+          <td>
+            <div class="acciones">
+
+              <button
+                type="button"
+                (click)="editarAlumno(alumno)"
+                title="Editar estudiante">
+                ✏️
+              </button>
+
+              <a
+                [routerLink]="[
+    '/servicio-practicas/practicas-profesionales/asistencia',
+    alumno.idAlumno
+  ]"
+                class="btn-asistencia"
+                title="Ver control de asistencia">
+                🕒
+              </a>
+
+              <button
+                type="button"
+                (click)="verHistorial(alumno)"
+                title="Historial">
+                📋
+              </button>
+
+              <button
+                type="button"
+                *ngIf="alumno.activo"
+                (click)="finalizarAlumno(alumno)"
+                title="Finalizar">
+                ✔️
+              </button>
+
+              <button
+                type="button"
+                *ngIf="!alumno.activo"
+                (click)="reactivarAlumno(alumno)"
+                title="Reactivar">
+                ↻
+              </button>
+
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="!cargando && alumnosFiltrados.length === 0">
+          <td colspan="7" class="sin-datos">
+            No se encontraron estudiantes.
+          </td>
+        </tr>
+
+        <tr *ngIf="cargando">
+          <td colspan="7" class="sin-datos">
+            Cargando estudiantes...
+          </td>
+        </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ======================================= -->
+<!-- FORMULARIO REGISTRAR / EDITAR ESTUDIANTE -->
+<!-- ======================================= -->
+
+<div
+  class="ss-modal-fondo"
+  *ngIf="mostrarFormulario"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Formulario de estudiante">
+
+  <div class="ss-modal">
+
+    <div class="ss-modal-header">
+
+      <div>
+        <h2>
+          {{
+          idEditando !== null
+          ? 'Editar estudiante'
+          : 'Registrar estudiante'
+          }}
+        </h2>
+
+        <p>
+          Completa la información del estudiante
+          de Prácticas Profesionales.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="cerrar-modal"
+        (click)="cerrarFormulario()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="alerta error" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <form (ngSubmit)="guardarAlumno()">
+
+      <div class="form-grid">
+
+        <label>
+          Matrícula *
+          <input
+            type="text"
+            name="matricula"
+            [(ngModel)]="formulario.matricula"
+            required>
+        </label>
+
+        <label>
+          Nombre *
+          <input
+            type="text"
+            name="nombre"
+            [(ngModel)]="formulario.nombre"
+            required>
+        </label>
+
+        <label>
+          Apellidos *
+          <input
+            type="text"
+            name="apellidos"
+            [(ngModel)]="formulario.apellidos"
+            required>
+        </label>
+
+        <label>
+          Correo electrónico
+          <input
+            type="email"
+            name="correo"
+            [(ngModel)]="formulario.correo">
+        </label>
+
+        <label>
+          Teléfono
+          <input
+            type="tel"
+            name="telefono"
+            [(ngModel)]="formulario.telefono">
+        </label>
+
+        <label>
+          Programa educativo *
+          <select
+            name="programa"
+            [(ngModel)]="idProgramaSeleccionado"
+            required>
+
+            <option [ngValue]="null">
+              Selecciona un programa
+            </option>
+
+            <option
+              *ngFor="let programa of programas"
+              [ngValue]="programa.idProgramaEducativo">
+              {{ programa.nombre }}
+            </option>
+
+          </select>
+        </label>
+
+        <label>
+          Fecha de inicio *
+          <input
+            type="date"
+            name="fechaInicio"
+            [(ngModel)]="formulario.fechaInicio"
+            required>
+        </label>
+
+        <label>
+          Fecha de finalización *
+          <input
+            type="date"
+            name="fechaFin"
+            [(ngModel)]="formulario.fechaFin"
+            required>
+        </label>
+
+        <label>
+          Horas requeridas *
+          <input
+            type="number"
+            name="horasRequeridas"
+            min="1"
+            [(ngModel)]="formulario.horasRequeridas"
+            required>
+        </label>
+
+      </div>
+
+      <div class="ss-modal-acciones">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="cerrarFormulario()">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn-primario"
+          [disabled]="guardando">
+          {{
+          guardando
+          ? 'Guardando...'
+          : 'Guardar estudiante'
+          }}
+        </button>
+
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- ======================================= -->
+<!-- REGISTRAR / EDITAR ASISTENCIA -->
+<!-- ======================================= -->
+
+<div
+  class="ss-modal-fondo"
+  *ngIf="mostrarAsistencia"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Registro de asistencia">
+
+  <div class="ss-modal ss-modal-pequeno">
+
+    <div class="ss-modal-header">
+
+      <div>
+        <h2>
+          {{
+          idRegistroEditando !== null
+          ? 'Editar asistencia'
+          : 'Registrar asistencia'
+          }}
+        </h2>
+
+        <p>{{ seleccionado?.nombreCompleto }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="cerrar-modal"
+        (click)="cerrarAsistencia()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="alerta error" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <form (ngSubmit)="guardarAsistencia()">
+
+      <div class="form-grid">
+
+        <label>
+          Fecha *
+          <input
+            type="date"
+            name="fecha"
+            [(ngModel)]="formularioHoras.fecha"
+            required>
+        </label>
+
+        <label>
+          Hora de entrada *
+          <input
+            type="time"
+            name="horaEntrada"
+            [(ngModel)]="formularioHoras.horaEntrada"
+            required>
+        </label>
+
+        <label>
+          Hora de salida *
+          <input
+            type="time"
+            name="horaSalida"
+            [(ngModel)]="formularioHoras.horaSalida"
+            required>
+        </label>
+
+        <label class="campo-completo">
+          Observaciones
+          <textarea
+            name="observaciones"
+            rows="3"
+            [(ngModel)]="formularioHoras.observaciones">
+          </textarea>
+        </label>
+
+      </div>
+
+      <div class="ss-modal-acciones">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="cerrarAsistencia()">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn-primario"
+          [disabled]="guardando">
+          {{ guardando ? 'Guardando...' : 'Guardar asistencia' }}
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<!-- ======================================= -->
+<!-- HISTORIAL DE ASISTENCIAS -->
+<!-- ======================================= -->
+
+<div
+  class="ss-modal-fondo"
+  *ngIf="mostrarHistorial"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Historial de asistencias">
+
+  <div class="ss-modal ss-modal-grande">
+
+    <div class="ss-modal-header">
+
+      <div>
+        <h2>Historial de asistencias</h2>
+        <p>{{ seleccionado?.nombreCompleto }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="cerrar-modal"
+        (click)="cerrarHistorial()">
+        ×
+      </button>
+
+    </div>
+
+    <div class="alerta error" *ngIf="error">
+      {{ error }}
+    </div>
+
+    <div class="resumen-horas" *ngIf="resumen">
+
+      <div>
+        <span>Horas realizadas</span>
+        <strong>
+          {{ resumen.horasRealizadas | number:'1.0-2' }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Horas restantes</span>
+        <strong>
+          {{ resumen.horasRestantes | number:'1.0-2' }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Avance</span>
+        <strong>
+          {{ resumen.porcentajeAvance | number:'1.0-1' }}%
+        </strong>
+      </div>
+
+    </div>
+
+    <p *ngIf="cargandoHistorial">
+      Cargando historial...
+    </p>
+
+    <div
+      class="tabla-contenedor"
+      *ngIf="!cargandoHistorial">
+
+      <table>
+
+        <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Entrada</th>
+          <th>Salida</th>
+          <th>Horas</th>
+          <th>Observaciones</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let registro of registros">
+
+          <td>{{ registro.fecha }}</td>
+          <td>{{ registro.horaEntrada }}</td>
+          <td>{{ registro.horaSalida }}</td>
+
+          <td>
+            {{ registro.horasRealizadas | number:'1.0-2' }}
+          </td>
+
+          <td>
+            {{ registro.observaciones || '—' }}
+          </td>
+
+          <td>
+            <button
+              type="button"
+              class="btn-secundario"
+              (click)="editarAsistencia(registro)">
+              Editar
+            </button>
+          </td>
+
+        </tr>
+
+        <tr *ngIf="registros.length === 0">
+          <td colspan="6" class="sin-datos">
+            No hay asistencias registradas.
+          </td>
+        </tr>
+
+        </tbody>
+      </table>
+
+    </div>
+
+    <div class="ss-modal-acciones">
+
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="cerrarHistorial()">
+        Cerrar
+      </button>
+
+      <button
+        type="button"
+        class="btn-primario"
+        *ngIf="seleccionado?.activo"
+        (click)="abrirAsistencia(seleccionado!)">
+        + Nueva asistencia
+      </button>
+
+    </div>
+
+  </div>
+</div>

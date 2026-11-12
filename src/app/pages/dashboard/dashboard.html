@@ -1,0 +1,291 @@
+<div class="container-fluid p-0">
+
+  <div class="page-header mb-4">
+    <div>
+      <span class="page-label">
+        Panel principal
+      </span>
+
+      <h1>
+        Bienvenido, {{ usuario?.nombre }}
+      </h1>
+
+      <p>
+        Administra los procesos de la Biblioteca
+        Ing. Manuel Lima Flores.
+      </p>
+    </div>
+  </div>
+
+
+  <div class="welcome-banner mb-4">
+    <div>
+      <span class="welcome-label">
+        Sistema Bibliotecario Interno
+      </span>
+
+      <h2>
+        Biblioteca FCA
+      </h2>
+
+      <p>
+        Consulta y administra los recursos documentales,
+        movimientos, estudiantes y usuarios del sistema.
+      </p>
+    </div>
+
+    <div class="banner-icon">
+      📖
+    </div>
+  </div>
+
+
+  <div class="section-header">
+    <div>
+      <h2>
+        Módulos del sistema
+      </h2>
+
+      <p>
+        Selecciona el módulo que deseas administrar.
+      </p>
+    </div>
+  </div>
+
+
+  <div class="row g-4 mt-1">
+
+    <!-- RECURSOS DOCUMENTALES -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/recursos"
+        class="module-card">
+
+        <div class="module-icon">
+          📚
+        </div>
+
+        <div>
+          <h3>
+            Recursos documentales
+          </h3>
+
+          <p>
+            Consulta, registra y administra
+            los recursos de la biblioteca.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- COTIZACIONES -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/cotizaciones"
+        class="module-card">
+
+        <div class="module-icon">
+          🧾
+        </div>
+
+        <div>
+          <h3>
+            Cotizaciones
+          </h3>
+
+          <p>
+            Gestiona las solicitudes de
+            adquisición de recursos.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- DONACIONES -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/donaciones"
+        class="module-card">
+
+        <div class="module-icon">
+          🎁
+        </div>
+
+        <div>
+          <h3>
+            Donaciones
+          </h3>
+
+          <p>
+            Registra y consulta los recursos
+            recibidos mediante donación.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- BAJAS -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/bajas"
+        class="module-card">
+
+        <div class="module-icon">
+          📤
+        </div>
+
+        <div>
+          <h3>
+            Bajas
+          </h3>
+
+          <p>
+            Registra y consulta las bajas
+            realizadas en la biblioteca.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- DESCARTES -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/descartes"
+        class="module-card">
+
+        <div class="module-icon">
+          🗑️
+        </div>
+
+        <div>
+          <h3>
+            Descartes
+          </h3>
+
+          <p>
+            Consulta el historial de recursos
+            descartados.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- SERVICIO SOCIAL Y PRÁCTICAS -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/practicas"
+        class="module-card">
+
+        <div class="module-icon">
+          🎓
+        </div>
+
+        <div>
+          <h3>
+            Servicio social y prácticas
+          </h3>
+
+          <p>
+            Administra estudiantes,
+            asistencias y avance de horas.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- USUARIOS -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/usuarios"
+        class="module-card">
+
+        <div class="module-icon">
+          👥
+        </div>
+
+        <div>
+          <h3>
+            Usuarios
+          </h3>
+
+          <p>
+            Administra al personal autorizado
+            para utilizar el sistema.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+
+    <!-- CATÁLOGOS -->
+
+    <div class="col-12 col-md-6 col-xl-4">
+      <a
+        routerLink="/catalogos"
+        class="module-card">
+
+        <div class="module-icon">
+          ⚙️
+        </div>
+
+        <div>
+          <h3>
+            Catálogos
+          </h3>
+
+          <p>
+            Administra programas, academias,
+            editoriales y experiencias educativas.
+          </p>
+        </div>
+
+        <span class="arrow">
+          →
+        </span>
+      </a>
+    </div>
+
+  </div>
+
+</div>

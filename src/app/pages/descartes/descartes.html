@@ -1,0 +1,438 @@
+<section class="descartes-page">
+
+  <header class="encabezado">
+    <div>
+      <h1>Gestión de descartes</h1>
+      <p>Biblioteca Ing. Manuel Lima Flores · FCA</p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-principal"
+      (click)="nuevaSolicitud()">
+      + Nueva solicitud
+    </button>
+  </header>
+
+  <div class="alerta exito" *ngIf="mensaje">
+    {{ mensaje }}
+  </div>
+
+  <div class="alerta error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen">
+    <article class="tarjeta">
+      <span>Solicitudes pendientes</span>
+      <strong>{{ pendientes.length }}</strong>
+      <small>Por resolver</small>
+    </article>
+
+    <article class="tarjeta">
+      <span>Solicitudes aprobadas</span>
+      <strong>{{ aprobados }}</strong>
+      <small>Descartes autorizados</small>
+    </article>
+
+    <article class="tarjeta">
+      <span>Solicitudes rechazadas</span>
+      <strong>{{ rechazados }}</strong>
+      <small>Sin afectar el inventario</small>
+    </article>
+
+    <article class="tarjeta">
+      <span>Ejemplares retirados</span>
+      <strong>{{ ejemplaresRetirados }}</strong>
+      <small>Por descartes aprobados</small>
+    </article>
+  </div>
+
+  <!-- NUEVA SOLICITUD -->
+  <section class="panel" *ngIf="mostrarFormulario">
+
+    <div class="panel-encabezado">
+      <div>
+        <h2>Registrar solicitud de descarte</h2>
+        <p>Propón el retiro de ejemplares para evaluación.</p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="cancelar()">
+        Cerrar
+      </button>
+    </div>
+
+    <div class="aviso">
+      La solicitud se registrará como
+      <strong>PENDIENTE</strong>.
+      No se descontarán ejemplares hasta su aprobación.
+    </div>
+
+    <form #formulario="ngForm" (ngSubmit)="registrar()">
+
+      <div class="campos">
+
+        <label class="campo ancho">
+          <span>Recurso documental *</span>
+
+          <select
+            name="recurso"
+            [(ngModel)]="form.idRecursoDocumental"
+            required>
+
+            <option [ngValue]="null">
+              Selecciona un recurso
+            </option>
+
+            <option
+              *ngFor="let recurso of recursosDisponibles"
+              [ngValue]="recurso.idRecursoDocumental">
+              {{ recurso.titulo }}
+              — {{ recurso.cantidad }} disponibles
+            </option>
+
+          </select>
+        </label>
+
+        <div
+          class="recurso-info ancho"
+          *ngIf="recursoSeleccionado as recurso">
+
+          <div>
+            <span>Título</span>
+            <strong>{{ recurso.titulo }}</strong>
+          </div>
+
+          <div>
+            <span>ISBN</span>
+            <strong>{{ recurso.isbn || 'Sin registrar' }}</strong>
+          </div>
+
+          <div>
+            <span>Existencias</span>
+            <strong>{{ disponibles }}</strong>
+          </div>
+
+        </div>
+
+        <label class="campo">
+          <span>Fecha de solicitud *</span>
+          <input
+            type="date"
+            name="fecha"
+            [(ngModel)]="form.fechaDescarte"
+            required>
+        </label>
+
+        <label class="campo">
+          <span>Cantidad solicitada *</span>
+          <input
+            type="number"
+            name="cantidad"
+            min="1"
+            step="1"
+            [max]="disponibles"
+            [(ngModel)]="form.cantidad"
+            required>
+        </label>
+
+        <label class="campo ancho">
+          <span>Motivo del descarte *</span>
+
+          <select
+            name="motivo"
+            [(ngModel)]="form.motivo"
+            required>
+
+            <option value="">Selecciona un motivo</option>
+            <option value="Contenido desactualizado">
+              Contenido desactualizado
+            </option>
+            <option value="Obsolescencia">
+              Obsolescencia
+            </option>
+            <option value="Deterioro">
+              Deterioro
+            </option>
+            <option value="Duplicidad de ejemplares">
+              Duplicidad de ejemplares
+            </option>
+            <option value="Baja demanda">
+              Baja demanda
+            </option>
+            <option value="Otro">
+              Otro
+            </option>
+
+          </select>
+        </label>
+
+        <label class="campo ancho">
+          <span>Justificación y observaciones</span>
+          <textarea
+            name="observaciones"
+            rows="4"
+            maxlength="1000"
+            [(ngModel)]="form.observaciones"
+            placeholder="Explica por qué se solicita el descarte">
+          </textarea>
+        </label>
+
+      </div>
+
+      <div class="acciones">
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="cancelar()">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn-principal"
+          [disabled]="guardando || formulario.invalid">
+          {{ guardando ? 'Registrando...' : 'Enviar solicitud' }}
+        </button>
+      </div>
+
+    </form>
+  </section>
+
+  <!-- PENDIENTES -->
+  <section class="panel">
+
+    <div class="panel-encabezado">
+      <div>
+        <h2>Solicitudes pendientes</h2>
+        <p>Revisa y resuelve los descartes solicitados.</p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="cargarDatos()"
+        [disabled]="cargando">
+        Actualizar
+      </button>
+    </div>
+
+    <p class="cargando" *ngIf="cargando">
+      Cargando solicitudes...
+    </p>
+
+    <div class="solicitudes" *ngIf="!cargando">
+
+      <article
+        class="solicitud"
+        *ngFor="let descarte of pendientes">
+
+        <div class="solicitud-encabezado">
+          <div>
+            <span class="folio">
+              Solicitud #{{ descarte.idDescarte }}
+            </span>
+            <h3>{{ descarte.tituloRecurso }}</h3>
+          </div>
+
+          <span class="estado pendiente">
+            PENDIENTE
+          </span>
+        </div>
+
+        <div class="detalle-grid">
+          <div>
+            <span>Fecha de solicitud</span>
+            <strong>{{ descarte.fechaDescarte }}</strong>
+          </div>
+
+          <div>
+            <span>Ejemplares solicitados</span>
+            <strong>{{ descarte.cantidad }}</strong>
+          </div>
+
+          <div>
+            <span>Solicitante</span>
+            <strong>{{ descarte.nombreUsuario }}</strong>
+          </div>
+
+          <div>
+            <span>Motivo</span>
+            <strong>{{ descarte.motivo }}</strong>
+          </div>
+        </div>
+
+        <p class="justificacion">
+          {{ descarte.observaciones || 'Sin observaciones' }}
+        </p>
+
+        <label class="campo">
+          <span>
+            Observaciones de resolución
+            (obligatorias para rechazar)
+          </span>
+
+          <textarea
+            rows="2"
+            maxlength="1000"
+            [name]="'resolucion-' + descarte.idDescarte"
+            [(ngModel)]="observacionesResolucion[descarte.idDescarte]"
+            placeholder="Escribe las observaciones de la decisión">
+          </textarea>
+        </label>
+
+        <div class="acciones">
+          <button
+            type="button"
+            class="btn-rechazar"
+            [disabled]="resolviendoId !== null"
+            (click)="rechazar(descarte)">
+            Rechazar
+          </button>
+
+          <button
+            type="button"
+            class="btn-aprobar"
+            [disabled]="resolviendoId !== null"
+            (click)="aprobar(descarte)">
+            {{
+            resolviendoId === descarte.idDescarte
+            ? 'Procesando...'
+            : 'Aprobar descarte'
+            }}
+          </button>
+        </div>
+
+      </article>
+
+      <div
+        class="sin-datos"
+        *ngIf="pendientes.length === 0">
+        No hay solicitudes pendientes.
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- HISTORIAL -->
+  <section class="panel">
+
+    <div class="panel-encabezado">
+      <div>
+        <h2>Historial de descartes</h2>
+        <p>Consulta solicitudes y resoluciones registradas.</p>
+      </div>
+      <div class="acciones-encabezado"> <button
+        type="button"
+        class="btn-secundario"
+        (click)="exportarExcel()"
+        [disabled]="cargando || !historialFiltrado.length">
+        Exportar a Excel
+      </button>
+      </div>
+    </div>
+
+    <div class="filtros">
+      <input
+        type="search"
+        [(ngModel)]="filtro"
+        placeholder="Buscar recurso, folio, motivo o responsable">
+
+      <select [(ngModel)]="filtroEstado">
+        <option value="TODOS">Todos los estados</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="APROBADO">Aprobados</option>
+        <option value="RECHAZADO">Rechazados</option>
+      </select>
+    </div>
+
+    <div class="tabla-contenedor">
+      <table>
+        <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Fecha</th>
+          <th>Recurso</th>
+          <th>Cantidad</th>
+          <th>Motivo</th>
+          <th>Estado</th>
+          <th>Solicitante</th>
+          <th>Resolución</th>
+          <th>Baja</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let d of historialFiltrado">
+          <td>
+            <strong>#{{ d.idDescarte }}</strong>
+          </td>
+
+          <td>{{ d.fechaDescarte }}</td>
+
+          <td>
+            <strong>{{ d.tituloRecurso }}</strong>
+            <small>ISBN: {{ d.isbn || 'Sin registrar' }}</small>
+          </td>
+
+          <td>{{ d.cantidad }}</td>
+
+          <td>{{ d.motivo }}</td>
+
+          <td>
+              <span
+                class="estado"
+                [ngClass]="{
+                  'pendiente': d.estado === 'PENDIENTE',
+                  'aprobado': d.estado === 'APROBADO',
+                  'rechazado': d.estado === 'RECHAZADO'
+                }">
+                {{ d.estado }}
+              </span>
+          </td>
+
+          <td>{{ d.nombreUsuario }}</td>
+
+          <td>
+            <ng-container *ngIf="d.fechaResolucion; else sinResolver">
+              <strong>
+                {{ d.nombreUsuarioResolucion || 'Sin registrar' }}
+              </strong>
+              <small>{{ d.fechaResolucion }}</small>
+              <small>
+                {{ d.observacionesResolucion || 'Sin observaciones' }}
+              </small>
+            </ng-container>
+
+            <ng-template #sinResolver>
+              Sin resolver
+            </ng-template>
+          </td>
+
+          <td>
+              <span *ngIf="d.idBaja !== null">
+                #{{ d.idBaja }}
+              </span>
+            <span *ngIf="d.idBaja === null">—</span>
+          </td>
+        </tr>
+
+        <tr *ngIf="historialFiltrado.length === 0">
+          <td colspan="9" class="sin-datos">
+            No se encontraron descartes.
+          </td>
+        </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+</section>

@@ -1,0 +1,92 @@
+<section class="donaciones-page">
+  <header class="encabezado">
+    <div><h1>Donaciones</h1><p>Biblioteca Ing. Manuel Lima Flores · FCA</p></div>
+    <button class="principal" (click)="nuevo()" [disabled]="guardando">+ Nueva donación</button>
+  </header>
+  <p class="alerta exito" *ngIf="mensaje">{{ mensaje }}</p>
+  <p class="alerta error" *ngIf="error">{{ error }}</p>
+  <div class="resumen">
+    <article><strong>{{ donaciones.length }}</strong><span>Donaciones</span></article>
+    <article><strong>{{ totalEjemplares }}</strong><span>Ejemplares recibidos</span></article>
+    <article><strong>{{ valorTotal | currency:'MXN' }}</strong><span>Valor estimado total</span></article>
+  </div>
+
+  <section class="panel" *ngIf="mostrarFormulario">
+    <div class="titulo-panel"><h2>{{ editandoId == null ? 'Registrar donación' : 'Editar donación #' + editandoId }}</h2>
+      <button class="secundario" type="button" (click)="cancelar()">Cerrar</button></div>
+    <form #f="ngForm" (ngSubmit)="guardar()">
+      <div class="campos">
+        <label>Nombre del donante *
+          <input name="donante" [(ngModel)]="form.nombreDonante" required maxlength="255">
+        </label>
+        <label>Fecha de donación *
+          <input name="fecha" type="date" [(ngModel)]="form.fechaDonacion" required>
+        </label>
+        <label>Cantidad de ejemplares *
+          <input name="cantidad" type="number" min="1" step="1" [(ngModel)]="form.cantidad" required>
+        </label>
+        <label>Valor estimado total (MXN)
+          <input name="precio" type="number" min="0" step="0.01" [(ngModel)]="form.precioEstimado">
+        </label>
+        <label class="ancho">Observaciones
+          <textarea name="observaciones" rows="3" [(ngModel)]="form.observaciones"></textarea>
+        </label>
+      </div>
+      <h3>Recurso documental</h3>
+      <div class="opciones">
+        <label><input type="radio" name="modo" value="existente" [(ngModel)]="modo" (ngModelChange)="cambiarModo()"> Seleccionar del catálogo</label>
+        <label *ngIf="editandoId == null"><input type="radio" name="modo" value="nuevo" [(ngModel)]="modo" (ngModelChange)="cambiarModo()"> Registrar libro nuevo</label>
+      </div>
+      <div class="campos" *ngIf="modo === 'existente'">
+        <label class="ancho">Libro existente *
+          <select name="recurso" [(ngModel)]="form.idRecursoDocumental" required>
+            <option [ngValue]="null">Selecciona un recurso documental</option>
+            <option *ngFor="let r of recursos" [ngValue]="r.idRecursoDocumental">{{ r.titulo }} — {{ r.autor || 'Autor no registrado' }} ({{ r.cantidad ?? 0 }} disponibles)</option>
+          </select>
+        </label>
+      </div>
+      <div class="campos" *ngIf="form.libroNuevo as libro">
+        <label class="ancho">Título *
+          <input name="titulo" [(ngModel)]="libro.titulo" required>
+        </label>
+        <label>Autor <input name="autor" [(ngModel)]="libro.autor"></label>
+        <label>ISBN <input name="isbn" [(ngModel)]="libro.isbn"></label>
+        <label>Edición <input name="edicion" [(ngModel)]="libro.edicion"></label>
+        <label>Año <input name="anio" [(ngModel)]="libro.anio"></label>
+        <label>Tipo <input name="tipo" [(ngModel)]="libro.tipo"></label>
+      </div>
+      <div class="acciones">
+        <button class="secundario" type="button" (click)="cancelar()">Cancelar</button>
+        <button class="principal" type="submit" [disabled]="guardando || f.invalid">{{ guardando ? 'Guardando...' : 'Guardar donación' }}</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="titulo-panel"><h2>Registro de donaciones</h2>
+      <div class="acciones-reporte"><button class="secundario" type="button" (click)="exportarExcel()" [disabled]="cargando || filtradas.length === 0">Exportar a Excel</button>
+      <button class="secundario" (click)="cargar()" [disabled]="cargando">Actualizar</button></div></div>
+    <div class="filtros"><input type="search" [(ngModel)]="filtro" placeholder="Buscar folio, donante, fecha, libro o ISBN"></div>
+    <p *ngIf="cargando">Cargando donaciones...</p>
+    <div class="tabla-contenedor" *ngIf="!cargando">
+      <table>
+        <thead><tr><th>Folio</th><th>Fecha</th><th>Donante</th><th>Libro</th><th>Cantidad</th><th>Valor estimado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let d of filtradas">
+            <td>#{{ d.idDonacion }}</td>
+            <td>{{ d.fechaDonacion }}</td>
+            <td>{{ d.nombreDonante }}</td>
+            <td><strong>{{ d.recursoDocumental?.titulo || 'Sin título' }}</strong><small>{{ d.recursoDocumental?.isbn || '' }}</small></td>
+            <td>{{ d.cantidad }}</td>
+            <td>{{ (d.precioEstimado ?? 0) | currency:'MXN' }}</td>
+            <td><div class="acciones-tabla">
+              <button (click)="editar(d)" [disabled]="guardando">Editar</button>
+              <button class="peligro" (click)="eliminar(d)" [disabled]="guardando">Eliminar</button>
+            </div></td>
+          </tr>
+          <tr *ngIf="filtradas.length === 0"><td colspan="7">No hay donaciones para mostrar.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

@@ -1,0 +1,126 @@
+<section class="catalogos-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">ADMINISTRACIÓN ACADÉMICA</span>
+      <h1>Catálogos</h1>
+      <p>Administra programas educativos, academias, experiencias educativas y editoriales.</p>
+    </div>
+    <a routerLink="/recursos" class="link-recursos">📚 Ir a recursos documentales</a>
+  </header>
+
+  <nav class="tabs" aria-label="Secciones de catálogos">
+    <button *ngFor="let item of secciones" type="button" [class.selected]="seccion === item.id" (click)="seleccionarSeccion(item.id)">
+      <span>{{ item.icono }}</span> {{ item.nombre }}
+    </button>
+  </nav>
+
+  <div *ngIf="error" class="alert alert-error" role="alert">{{ error }}</div>
+  <div *ngIf="aviso" class="alert alert-ok" role="status">{{ aviso }}</div>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>{{ tituloActual }}</h2>
+        <p>{{ registros.length }} registro(s) encontrados</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-outline" (click)="cargarTodo()" [disabled]="cargando">↻ Actualizar</button>
+        <button type="button" class="btn btn-primary" (click)="nuevo()" [disabled]="cargando">+ Nuevo registro</button>
+      </div>
+    </div>
+
+    <label class="search-label" for="buscarCatalogo">Buscar por nombre</label>
+    <input id="buscarCatalogo" type="search" [(ngModel)]="busqueda" placeholder="Escribe el nombre que deseas encontrar..." />
+
+    <div *ngIf="cargando" class="empty">Cargando catálogos...</div>
+    <div *ngIf="!cargando" class="table-scroll">
+      <table>
+        <thead><tr><th>ID</th><th>Nombre</th><th>Información adicional</th><th class="right">Acciones</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let registro of registros">
+            <td>#{{ obtenerId(registro) }}</td>
+            <td><strong>{{ seccion === 'programas' ? nombreProgramaCompleto($any(registro)) : registro.nombre }}</strong></td>
+            <td>{{ detalle(registro) }}</td>
+            <td class="right action-cell">
+              <button type="button" class="btn btn-small btn-outline" (click)="editar(registro)">Editar</button>
+              <button type="button" class="btn btn-small btn-danger" (click)="eliminar(registro)">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="registros.length === 0"><td colspan="4" class="empty">No hay registros para mostrar.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div *ngIf="formularioAbierto" class="modal-backdrop" (click)="cerrarFormulario()">
+    <section class="form-modal" role="dialog" aria-modal="true" aria-labelledby="tituloFormulario" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div><span class="eyebrow">{{ editandoId === null ? 'NUEVO REGISTRO' : 'EDITAR REGISTRO' }}</span><h2 id="tituloFormulario">{{ tituloActual }}</h2></div>
+        <button type="button" class="close" (click)="cerrarFormulario()" aria-label="Cerrar">×</button>
+      </div>
+      <form (ngSubmit)="guardar()" #catalogoForm="ngForm">
+        <div class="modal-body">
+          <label for="nombre">Nombre *</label>
+          <input id="nombre" name="nombre" [(ngModel)]="formulario.nombre" required maxlength="200" placeholder="Nombre del registro" />
+
+          <ng-container *ngIf="seccion === 'programas'">
+            <label for="nombreCorto">Nombre corto</label>
+            <input id="nombreCorto" name="nombreCorto" [(ngModel)]="formulario.nombreCorto" placeholder="Ej. SCA" />
+            <label for="anio">Año / plan de estudios *</label>
+            <select id="anio" name="anio" [(ngModel)]="formulario.anio" required>
+              <option value="" disabled>Selecciona un año</option>
+              <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+            </select>
+            <label for="modalidad">Modalidad *</label>
+            <select id="modalidad" name="modalidad" [(ngModel)]="formulario.modalidad" required>
+              <option value="" disabled>Selecciona una modalidad</option>
+              <option *ngFor="let modalidad of modalidades" [value]="modalidad">{{ modalidad }}</option>
+            </select>
+            <label *ngIf="formulario.modalidad === 'Otra'" for="modalidadOtra">Especifica la modalidad *</label>
+            <input *ngIf="formulario.modalidad === 'Otra'" id="modalidadOtra" name="modalidadOtra"
+              [(ngModel)]="modalidadPersonalizada" required placeholder="Ej. Mixta" />
+            <div class="vista-previa-programa" *ngIf="formulario.nombre || formulario.anio || formulario.modalidad">
+              <small>Nombre completo (vista previa)</small>
+              <strong>{{ vistaPreviaPrograma }}</strong>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="seccion === 'academias'">
+            <label>Programas educativos relacionados</label>
+            <div class="checks" *ngIf="programas.length; else sinProgramas">
+              <label *ngFor="let programa of programas" class="check-row">
+                <input type="checkbox" [checked]="seleccionado('programas', programa.idProgramaEducativo)" (change)="cambiarSeleccion('programas', programa.idProgramaEducativo, $any($event.target).checked)" />
+                <span>{{ nombreProgramaCompleto(programa) }}</span>
+              </label>
+            </div>
+            <ng-template #sinProgramas><p class="helper">Primero registra un programa educativo.</p></ng-template>
+          </ng-container>
+
+          <ng-container *ngIf="seccion === 'experiencias'">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="3" [(ngModel)]="formulario.descripcion"></textarea>
+            <label class="check-row check-status"><input type="checkbox" name="estado" [(ngModel)]="formulario.estado" /> Experiencia educativa activa</label>
+            <label>Academias relacionadas</label>
+            <div class="checks" *ngIf="academias.length; else sinAcademias">
+              <label *ngFor="let academia of academias" class="check-row">
+                <input type="checkbox" [checked]="seleccionado('academias', academia.idAcademia)" (change)="cambiarSeleccion('academias', academia.idAcademia, $any($event.target).checked)" />
+                <span>{{ academia.nombre }}</span>
+              </label>
+            </div>
+            <ng-template #sinAcademias><p class="helper">Primero registra una academia.</p></ng-template>
+          </ng-container>
+
+          <ng-container *ngIf="seccion === 'editoriales'">
+            <label for="paginaWeb">Página web</label>
+            <input id="paginaWeb" name="paginaWeb" type="url" [(ngModel)]="formulario.paginaWeb" placeholder="https://ejemplo.com" />
+          </ng-container>
+          <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" (click)="cerrarFormulario()" [disabled]="guardando">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="guardando || catalogoForm.invalid">{{ guardando ? 'Guardando...' : (editandoId === null ? 'Registrar' : 'Guardar cambios') }}</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>

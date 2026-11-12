@@ -1,0 +1,398 @@
+<section class="bajas-page">
+
+  <!-- ENCABEZADO -->
+  <header class="encabezado">
+
+    <div>
+      <h1>Bajas de recursos documentales</h1>
+      <p>
+        Biblioteca Ing. Manuel Lima Flores · FCA
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn-principal"
+      (click)="nuevaBaja()"
+      [disabled]="guardando">
+      + Registrar baja
+    </button>
+
+  </header>
+
+  <!-- MENSAJES -->
+  <div
+    class="alerta exito"
+    *ngIf="mensaje">
+    {{ mensaje }}
+  </div>
+
+  <div
+    class="alerta error"
+    *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- TARJETAS DE RESUMEN -->
+  <div class="resumen">
+
+    <article class="tarjeta">
+      <span class="tarjeta-titulo">
+        Bajas registradas
+      </span>
+      <strong>
+        {{ bajas.length }}
+      </strong>
+      <small>
+        Movimientos históricos
+      </small>
+    </article>
+
+    <article class="tarjeta">
+      <span class="tarjeta-titulo">
+        Ejemplares dados de baja
+      </span>
+      <strong>
+        {{ totalEjemplaresDadosDeBaja }}
+      </strong>
+      <small>
+        Salidas definitivas
+      </small>
+    </article>
+
+    <article class="tarjeta">
+      <span class="tarjeta-titulo">
+        Recursos afectados
+      </span>
+      <strong>
+        {{ recursosAfectados }}
+      </strong>
+      <small>
+        Títulos con bajas registradas
+      </small>
+    </article>
+
+  </div>
+
+  <!-- FORMULARIO -->
+  <section
+    class="panel"
+    *ngIf="mostrarFormulario">
+
+    <div class="panel-encabezado">
+      <div>
+        <h2>Registrar baja definitiva</h2>
+        <p>
+          Selecciona el recurso y registra los
+          ejemplares que saldrán del inventario.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="cancelar()">
+        Cerrar
+      </button>
+    </div>
+
+    <div class="aviso">
+      <strong>Importante:</strong>
+      Las bajas son definitivas y quedarán
+      registradas en el historial del sistema.
+    </div>
+
+    <form
+      #formulario="ngForm"
+      (ngSubmit)="registrar()">
+
+      <div class="campos">
+
+        <label class="campo ancho">
+          <span>Recurso documental *</span>
+
+          <select
+            name="recurso"
+            [(ngModel)]="form.idRecursoDocumental"
+            required>
+
+            <option [ngValue]="null">
+              Selecciona un recurso documental
+            </option>
+
+            <option
+              *ngFor="let recurso of recursosDisponibles"
+              [ngValue]="recurso.idRecursoDocumental">
+
+              {{ recurso.titulo }}
+              —
+              {{ recurso.cantidad }} disponibles
+
+            </option>
+
+          </select>
+        </label>
+
+        <!-- INFORMACIÓN DEL RECURSO -->
+        <div
+          class="recurso-info ancho"
+          *ngIf="recursoSeleccionado as recurso">
+
+          <div>
+            <span>Recurso seleccionado</span>
+            <strong>
+              {{ recurso.titulo }}
+            </strong>
+          </div>
+
+          <div>
+            <span>ISBN</span>
+            <strong>
+              {{ recurso.isbn || 'Sin registrar' }}
+            </strong>
+          </div>
+
+          <div>
+            <span>Existencias disponibles</span>
+            <strong class="cantidad-disponible">
+              {{ existenciasDisponibles }}
+            </strong>
+          </div>
+
+        </div>
+
+        <label class="campo">
+          <span>Fecha de baja *</span>
+
+          <input
+            type="date"
+            name="fechaBaja"
+            [(ngModel)]="form.fechaBaja"
+            required>
+        </label>
+
+        <label class="campo">
+          <span>Cantidad de ejemplares *</span>
+
+          <input
+            type="number"
+            name="cantidad"
+            min="1"
+            step="1"
+            [max]="existenciasDisponibles"
+            [(ngModel)]="form.cantidad"
+            required>
+        </label>
+
+        <label class="campo ancho">
+          <span>Motivo de la baja *</span>
+
+          <select
+            name="motivo"
+            [(ngModel)]="form.motivo"
+            required>
+
+            <option value="">
+              Selecciona el motivo
+            </option>
+
+            <option value="Deterioro irreversible">
+              Deterioro irreversible
+            </option>
+
+            <option value="Pérdida o extravío">
+              Pérdida o extravío
+            </option>
+
+            <option value="Daño físico">
+              Daño físico
+            </option>
+
+            <option value="Robo">
+              Robo
+            </option>
+
+            <option value="Otro">
+              Otro
+            </option>
+
+          </select>
+        </label>
+
+        <label class="campo ancho">
+          <span>Observaciones</span>
+
+          <textarea
+            name="observaciones"
+            rows="4"
+            maxlength="1000"
+            [(ngModel)]="form.observaciones"
+            placeholder="Describe los detalles de la baja">
+          </textarea>
+        </label>
+
+      </div>
+
+      <div class="acciones">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="cancelar()">
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn-peligro"
+          [disabled]="guardando || formulario.invalid">
+
+          {{
+          guardando
+          ? 'Registrando...'
+          : 'Confirmar baja definitiva'
+          }}
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </section>
+
+  <!-- HISTORIAL -->
+  <section class="panel">
+
+
+    <div class="panel-encabezado">
+
+      <div>
+        <h2>Historial de bajas</h2>
+        <p>
+          Consulta los movimientos definitivos
+          registrados en la biblioteca.
+        </p>
+      </div>
+
+      <div class="acciones-encabezado">
+
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="exportarExcel()"
+          [disabled]="cargando || !bajasFiltradas.length">
+          Exportar a Excel
+        </button>
+
+        <button
+          type="button"
+          class="btn-secundario"
+          (click)="cargarDatos()"
+          [disabled]="cargando">
+          Actualizar
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="busqueda">
+      <input
+        type="search"
+        [(ngModel)]="filtro"
+        placeholder="Buscar por folio, recurso, ISBN, motivo o responsable">
+    </div>
+
+    <p
+      class="cargando"
+      *ngIf="cargando">
+      Cargando historial de bajas...
+    </p>
+
+    <div
+      class="tabla-contenedor"
+      *ngIf="!cargando">
+
+      <table>
+
+        <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Fecha</th>
+          <th>Recurso documental</th>
+          <th>Cantidad</th>
+          <th>Motivo</th>
+          <th>Responsable</th>
+          <th>Observaciones</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr *ngFor="let baja of bajasFiltradas">
+
+          <td>
+              <span class="folio">
+                #{{ baja.idBaja }}
+              </span>
+          </td>
+
+          <td>
+            {{ baja.fechaBaja }}
+          </td>
+
+          <td>
+            <strong>
+              {{ baja.tituloRecurso }}
+            </strong>
+
+            <small>
+              ISBN:
+              {{ baja.isbn || 'Sin registrar' }}
+            </small>
+          </td>
+
+          <td>
+              <span class="cantidad-baja">
+                -{{ baja.cantidad }}
+              </span>
+          </td>
+
+          <td>
+            {{ baja.motivo }}
+          </td>
+
+          <td>
+            {{ baja.nombreUsuario }}
+          </td>
+
+          <td>
+            {{
+            baja.observaciones ||
+            'Sin observaciones'
+            }}
+          </td>
+
+        </tr>
+
+        <tr *ngIf="bajasFiltradas.length === 0">
+          <td
+            colspan="7"
+            class="sin-datos">
+
+            No hay bajas registradas
+            que coincidan con la búsqueda.
+
+          </td>
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+</section>

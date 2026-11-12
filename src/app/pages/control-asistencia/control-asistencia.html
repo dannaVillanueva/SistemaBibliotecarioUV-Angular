@@ -1,0 +1,462 @@
+
+<section class="control-asistencia">
+
+  <header class="ca-encabezado">
+    <div>
+      <a
+        [routerLink]="rutaRegreso"
+        class="ca-volver">
+        ← Volver a {{ nombreModulo }}
+      </a>
+
+      <h1>Control de asistencia</h1>
+
+      <p>
+        Seguimiento de horas, actividades y progreso
+        del estudiante.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="ca-btn ca-btn-secundario"
+      (click)="cargarDatos()"
+      [disabled]="cargando">
+      {{ cargando ? 'Actualizando...' : '↻ Actualizar' }}
+    </button>
+  </header>
+
+  <div *ngIf="mensaje" class="ca-alerta ca-exito">
+    {{ mensaje }}
+    <button type="button" (click)="mensaje = ''">×</button>
+  </div>
+
+  <div *ngIf="error" class="ca-alerta ca-error">
+    {{ error }}
+    <button type="button" (click)="error = ''">×</button>
+  </div>
+
+  <div
+    *ngIf="cargandoAlumno && !alumno"
+    class="ca-panel ca-centrado">
+    Cargando información del estudiante...
+  </div>
+
+  <ng-container *ngIf="alumno as estudiante">
+
+    <!-- DATOS DEL ESTUDIANTE -->
+    <section class="ca-panel ca-estudiante">
+
+      <div class="ca-avatar">
+        {{ estudiante.nombre.charAt(0) }}
+      </div>
+
+      <div class="ca-estudiante-info">
+        <span class="ca-sobretitulo">
+          {{ nombreModulo | uppercase }} · BIBLIOTECA FCA
+        </span>
+
+        <h2>{{ estudiante.nombreCompleto }}</h2>
+
+        <div class="ca-datos">
+          <span>
+            <b>Matrícula:</b> {{ estudiante.matricula }}
+          </span>
+
+          <span>
+            <b>Programa:</b>
+            {{ estudiante.programaEducativo }}
+          </span>
+
+          <span>
+            <b>Inicio:</b>
+            {{ estudiante.fechaInicio | date:'dd/MM/yyyy':'UTC' }}
+          </span>
+
+          <span>
+            <b>Finalización:</b>
+            {{ estudiante.fechaFin | date:'dd/MM/yyyy':'UTC' }}
+          </span>
+        </div>
+      </div>
+
+      <span
+        class="ca-estado"
+        [class.activo]="estudiante.activo">
+        {{ estudiante.activo ? 'Activo' : 'Inactivo' }}
+      </span>
+
+    </section>
+
+    <!-- FECHA DE CONSULTA -->
+    <section class="ca-panel ca-fecha-panel">
+      <div>
+        <h3>Resumen de horas</h3>
+        <p>
+          Consulta las horas realizadas en el día,
+          semana y mes de la fecha seleccionada.
+        </p>
+      </div>
+
+      <label class="ca-label">
+        Fecha de consulta
+        <input
+          type="date"
+          name="fechaSeleccionada"
+          [(ngModel)]="fechaSeleccionada">
+      </label>
+    </section>
+
+    <!-- INDICADORES -->
+    <div class="ca-indicadores">
+
+      <article class="ca-indicador">
+        <span class="ca-icono">◷</span>
+        <span class="ca-indicador-label">Horas del día</span>
+        <strong>{{ horasDia | number:'1.0-2' }} h</strong>
+        <small>
+          {{ fechaSeleccionada | date:'dd/MM/yyyy':'UTC' }}
+        </small>
+      </article>
+
+      <article class="ca-indicador">
+        <span class="ca-icono">▦</span>
+        <span class="ca-indicador-label">Horas de la semana</span>
+        <strong>{{ horasSemana | number:'1.0-2' }} h</strong>
+        <small>Lunes a viernes</small>
+      </article>
+
+      <article class="ca-indicador">
+        <span class="ca-icono">▣</span>
+        <span class="ca-indicador-label">Horas del mes</span>
+        <strong>{{ horasMes | number:'1.0-2' }} h</strong>
+        <small>Mes seleccionado</small>
+      </article>
+
+      <article class="ca-indicador ca-indicador-azul">
+        <span class="ca-icono">✓</span>
+        <span class="ca-indicador-label">Horas acumuladas</span>
+        <strong>{{ horasAcumuladas | number:'1.0-2' }} h</strong>
+        <small>Desde el inicio del periodo</small>
+      </article>
+
+    </div>
+
+    <!-- PROGRESO -->
+    <section class="ca-panel">
+
+      <div class="ca-titulo-seccion">
+        <div>
+          <h3>Progreso de {{ nombreModulo }}</h3>
+          <p>Horas realizadas respecto al total requerido.</p>
+        </div>
+
+        <strong class="ca-porcentaje">
+          {{ porcentajeAvance | number:'1.0-1' }}%
+        </strong>
+      </div>
+
+      <div class="ca-barra">
+        <div [style.width.%]="porcentajeAvance"></div>
+      </div>
+
+      <div class="ca-progreso-datos">
+
+        <div>
+          <span>Horas realizadas</span>
+          <strong>
+            {{ horasAcumuladas | number:'1.0-2' }} h
+          </strong>
+        </div>
+
+        <div>
+          <span>Horas por realizar</span>
+          <strong>
+            {{ horasRestantes | number:'1.0-2' }} h
+          </strong>
+        </div>
+
+        <div>
+          <span>Horas requeridas</span>
+          <strong>
+            {{ horasRequeridas | number:'1.0-2' }} h
+          </strong>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- REGISTRO -->
+    <section class="ca-panel" id="registro-asistencia">
+
+      <div class="ca-titulo-seccion">
+        <div>
+          <h3>
+            {{
+            idRegistroEditando !== null
+            ? 'Editar asistencia'
+            : 'Registrar asistencia diaria'
+            }}
+          </h3>
+
+          <p>
+            Captura el horario para calcular automáticamente
+            las horas de este turno.
+          </p>
+        </div>
+
+        <button
+          *ngIf="idRegistroEditando !== null"
+          type="button"
+          class="ca-btn ca-btn-secundario"
+          (click)="nuevaAsistencia()">
+          Cancelar edición
+        </button>
+      </div>
+
+      <form (ngSubmit)="guardarAsistencia()">
+
+        <div class="ca-formulario">
+
+          <label class="ca-label">
+            Fecha de asistencia *
+            <input
+              type="date"
+              name="fecha"
+              [(ngModel)]="formulario.fecha"
+              required>
+          </label>
+
+          <label class="ca-label">
+            Hora de entrada *
+            <input
+              type="time"
+              name="horaEntrada"
+              [(ngModel)]="formulario.horaEntrada"
+              required>
+          </label>
+
+          <label class="ca-label">
+            Hora de salida *
+            <input
+              type="time"
+              name="horaSalida"
+              [(ngModel)]="formulario.horaSalida"
+              required>
+          </label>
+
+          <div class="ca-horas-turno">
+            <span>Horas realizadas en este turno</span>
+            <strong>
+              {{ horasFormulario | number:'1.0-2' }} h
+            </strong>
+            <small>Cálculo automático</small>
+          </div>
+
+          <label class="ca-label ca-ancho-completo">
+            Actividades realizadas / observaciones
+            <textarea
+              name="observaciones"
+              [(ngModel)]="formulario.observaciones"
+              rows="3"
+              placeholder="Describe las actividades de la jornada">
+            </textarea>
+          </label>
+
+        </div>
+
+        <div class="ca-acciones-formulario">
+          <span>
+            Se permiten varios turnos por día,
+            sin traslapar horarios.
+          </span>
+
+          <button
+            type="submit"
+            class="ca-btn ca-btn-primario"
+            [disabled]="guardando || !estudiante.activo">
+            {{
+            guardando
+            ? 'Guardando...'
+            : idRegistroEditando !== null
+            ? 'Guardar cambios'
+            : 'Guardar asistencia'
+            }}
+          </button>
+        </div>
+
+      </form>
+
+    </section>
+
+    <!-- ASISTENCIAS DEL DÍA -->
+    <section class="ca-panel">
+
+      <div class="ca-titulo-seccion">
+        <div>
+          <h3>Asistencias del día</h3>
+          <p>
+            {{ fechaSeleccionada | date:'dd/MM/yyyy':'UTC' }}
+            · {{ registrosDelDia.length }} turno(s)
+            · {{ horasDia | number:'1.0-2' }} horas
+          </p>
+        </div>
+      </div>
+
+      <div class="ca-tabla-scroll">
+        <table class="ca-tabla">
+          <thead>
+          <tr>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Horas</th>
+            <th>Actividades</th>
+            <th>Acciones</th>
+          </tr>
+          </thead>
+
+          <tbody>
+
+          <tr *ngFor="let registro of registrosDelDia">
+            <td>{{ registro.horaEntrada | slice:0:5 }}</td>
+            <td>{{ registro.horaSalida | slice:0:5 }}</td>
+            <td>
+              <strong>
+                {{ registro.horasRealizadas | number:'1.0-2' }} h
+              </strong>
+            </td>
+            <td>
+              {{ registro.observaciones || 'Sin observaciones' }}
+            </td>
+            <td>
+              <button
+                type="button"
+                class="ca-btn ca-btn-editar"
+                [disabled]="!estudiante.activo"
+                (click)="editarAsistencia(registro)">
+                Editar
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="registrosDelDia.length === 0">
+            <td colspan="5" class="ca-vacio">
+              {{
+              cargandoHistorial
+              ? 'Cargando asistencias...'
+              : 'No hay asistencias en esta fecha.'
+              }}
+            </td>
+          </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- HISTORIAL -->
+    <section class="ca-panel">
+
+      <div class="ca-titulo-seccion">
+        <div>
+          <h3>Historial de asistencias</h3>
+          <p>Consulta los registros por fechas.</p>
+        </div>
+      </div>
+
+      <div class="ca-filtros">
+
+        <label class="ca-label">
+          Desde
+          <input
+            type="date"
+            name="filtroDesde"
+            [(ngModel)]="filtroDesde">
+        </label>
+
+        <label class="ca-label">
+          Hasta
+          <input
+            type="date"
+            name="filtroHasta"
+            [(ngModel)]="filtroHasta">
+        </label>
+
+        <button
+          type="button"
+          class="ca-btn ca-btn-secundario"
+          (click)="limpiarFiltros()">
+          Limpiar filtros
+        </button>
+
+      </div>
+
+      <div class="ca-resumen-historial">
+        <span>{{ registrosFiltrados.length }} registros</span>
+        <strong>
+          Horas del periodo:
+          {{ horasFiltradas | number:'1.0-2' }} h
+        </strong>
+      </div>
+
+      <div class="ca-tabla-scroll">
+        <table class="ca-tabla">
+
+          <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Horas realizadas</th>
+            <th>Observaciones</th>
+            <th>Acciones</th>
+          </tr>
+          </thead>
+
+          <tbody>
+
+          <tr *ngFor="let registro of registrosFiltrados">
+            <td>
+              {{ registro.fecha | date:'dd/MM/yyyy':'UTC' }}
+            </td>
+            <td>{{ registro.horaEntrada | slice:0:5 }}</td>
+            <td>{{ registro.horaSalida | slice:0:5 }}</td>
+            <td>
+              <strong>
+                {{ registro.horasRealizadas | number:'1.0-2' }} h
+              </strong>
+            </td>
+            <td>
+              {{ registro.observaciones || '—' }}
+            </td>
+            <td>
+              <button
+                type="button"
+                class="ca-btn ca-btn-editar"
+                [disabled]="!estudiante.activo"
+                (click)="editarAsistencia(registro)">
+                Editar
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="registrosFiltrados.length === 0">
+            <td colspan="6" class="ca-vacio">
+              {{
+              cargandoHistorial
+              ? 'Cargando historial...'
+              : 'No hay registros para el periodo.'
+              }}
+            </td>
+          </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </ng-container>
+
+</section>
